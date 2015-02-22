@@ -1,6 +1,7 @@
-﻿// anim.cpp version 5.0 -- Template code for drawing an articulated figure.  CS 174A.
+// anim.cpp version 5.0 -- Template code for drawing an articulated figure.  CS 174A.
 #include "../CS174a template/Utilities.h"
 #include "../CS174a template/Shapes.h"
+#include "terrainMap.h"
 
 std::stack<mat4> mvstack;
 
@@ -15,7 +16,7 @@ bool animationJustStarted = false;
 
 const unsigned X = 0, Y = 1, Z = 2;
 
-vec4 eye( 5, 0, 0, 1), ref( 0, 0, 0, 1 ), up( 0, 1, 0, 0 );	// The eye point and look-at point.
+vec4 eye( 10, 10, 0, 1), ref( 0, 0, 0, 1 ), up( 0, 1, 0, 0 );	// The eye point and look-at point.
 
 mat4	orientation, model_view;
 ShapeData cubeData, sphereData, coneData, cylData, customizedCubeData;				// Structs that hold the Vertex Array Object index and number of vertices of each shape.
@@ -23,6 +24,13 @@ GLuint	texture_cube, texture_earth, texture_customized_cube;
 GLint   uModelView, uProjection, uView,
 		uAmbient, uDiffuse, uSpecular, uLightPos, uShininess,
 		uTex, uEnableTex;
+
+
+TgaImage grassImage("texture_grass.tga");
+TgaImage rockImage("texture_rock.tga");
+int currentCustomizedImageTexture = NONE;
+int currentCubeImageTexture = NONE;
+
 
 void init()
 {
@@ -328,17 +336,16 @@ void drawPlanets()
 }
 
 /*********************************************************
+ Deprecated!!!
  setTextureImage()
  DOES: set the image of texture
+ args: @texture to be set
+       @new image file
  *********************************************************/
 void setTextureImage(GLuint &texture, char* imageFile)
 {
     TgaImage newImg(imageFile);
-    /*if (!newImg.loadTGA(imageFile))
-    {
-        printf("Error loading image file\n");
-        exit(1);
-    }*/
+    
     glGenTextures( 1, &texture );
     glBindTexture( GL_TEXTURE_2D, texture );
     
@@ -350,6 +357,62 @@ void setTextureImage(GLuint &texture, char* imageFile)
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 }
+
+/*********************************************************
+ setTextureImage2()
+ DOES: set the image of texture
+ args: @texture to be changed
+       @new instance of TgaImage
+ This function will be faster than setTextureImage()
+ since it does not need to load the new image file
+ *********************************************************/
+void setTextureImage2(GLuint &texture, TgaImage& newImg)
+{
+    glGenTextures( 1, &texture );
+    glBindTexture( GL_TEXTURE_2D, texture );
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, newImg.width, newImg.height, 0,
+                 (newImg.byteCount == 3) ? GL_BGR : GL_BGRA,
+                 GL_UNSIGNED_BYTE, newImg.data );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+}
+
+
+void mapTerrain(int layer[][TERRAIN_SIZE])
+{
+    mvstack.push(model_view);
+    for (int i=0; i<TERRAIN_SIZE; i++) {
+        mvstack.push(model_view);
+        for (int k=0; k<TERRAIN_SIZE; k++) {
+            if (layer[i][k] == NONE_ROW) {
+                break;
+            }
+            if (layer[i][k] == GRASS) {
+                if (currentCustomizedImageTexture != GRASS){
+                    setTextureImage2(texture_customized_cube, grassImage);
+                    currentCustomizedImageTexture = GRASS;
+                }
+                drawCustomizedCube();
+            }
+            if (layer[i][k] == ROCK) {
+                if (currentCubeImageTexture != ROCK) {
+                    setTextureImage2(texture_cube, rockImage);
+                    currentCubeImageTexture = ROCK;
+                }
+                drawCube();
+            }
+            model_view *= Translate(1, 0, 0);
+        }
+        model_view = mvstack.top(); mvstack.pop();
+        model_view *= Translate(0, 1, 0); drawAxes(basis_id++);
+    }
+    model_view = mvstack.top(); mvstack.pop();
+}
+
+
 /*********************************************************
  display() function
  *********************************************************/
@@ -376,17 +439,36 @@ void display(void)
         unrotatedPoint = eye;
     }
     
-    model_view *= RotateX(-90);
-    drawCustomizedCube();
+    model_view *= RotateX(-90);                         drawAxes(basis_id++);
     
-    model_view *= Translate(0, 1.5, 0);
-    GLuint tmp = texture_cube;
-    setTextureImage(texture_cube, "newYear.tga");
-    drawCube();
-    texture_cube = tmp;
+    mvstack.push(model_view);
+    model_view *= Translate(-10, -10, 0);
+    mapTerrain(layer1);
+    model_view *= Translate(0, 0, 1);
+    mapTerrain(layer2);
+    model_view *= Translate(0, 0, 1);
+    mapTerrain(layer3);
+    model_view *= Translate(0, 0, 1);
+    mapTerrain(layer4);
+    model_view *= Translate(0, 0, 1);
+    mapTerrain(layer5);
+    model_view = mvstack.top(); mvstack.pop();
     
-    model_view *= Translate(0, 1.5, 0);                    drawAxes(basis_id++);
+    
+    
+    
+    
+    /*
     drawCustomizedCube();
+     
+    model_view *= Translate(0, 1.5, 0);                 drawAxes(basis_id++);
+    GLuint tmp = texture_customized_cube;
+    setTextureImage2(texture_customized_cube, grassImage);
+    drawCustomizedCube();
+    texture_customized_cube = tmp;
+    
+    model_view *= Translate(3, 0, 0);                    drawAxes(basis_id++);
+    drawCustomizedCube();*/
 
     
     glutSwapBuffers();

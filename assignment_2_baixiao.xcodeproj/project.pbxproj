@@ -39,6 +39,9 @@
 		A97BC64A1A97DDD60076E1FA /* newYear.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = newYear.tga; sourceTree = "<group>"; };
 		A97BC64D1A97EB540076E1FA /* anim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = anim.cpp; sourceTree = "<group>"; };
 		A97BC6501A99684A0076E1FA /* texture.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture.tga; sourceTree = "<group>"; };
+		A9C70F901A9A571200171F50 /* texture_grass.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_grass.tga; sourceTree = "<group>"; };
+		A9C70F921A9A593600171F50 /* terrainMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = terrainMap.h; sourceTree = "<group>"; };
+		A9C70F931A9A6F8F00171F50 /* texture_rock.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_rock.tga; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,14 +79,12 @@
 		A97BC63A1A97D7A80076E1FA /* my code */ = {
 			isa = PBXGroup;
 			children = (
-				A97BC63C1A97D7A80076E1FA /* challenge.tga */,
-				A97BC63D1A97D7A80076E1FA /* earth.tga */,
-				A97BC6501A99684A0076E1FA /* texture.tga */,
-				A97BC64A1A97DDD60076E1FA /* newYear.tga */,
 				A97BC63E1A97D7A80076E1FA /* emcmdprompt.bat */,
 				A97BC63F1A97D7A80076E1FA /* fshader.glsl */,
 				A97BC6401A97D7A80076E1FA /* vshader.glsl */,
 				A97BC64D1A97EB540076E1FA /* anim.cpp */,
+				A9C70F921A9A593600171F50 /* terrainMap.h */,
+				A9C70F911A9A571D00171F50 /* texture */,
 			);
 			path = "my code";
 			sourceTree = "<group>";
@@ -97,6 +98,19 @@
 			);
 			path = "CS174a template";
 			sourceTree = SOURCE_ROOT;
+		};
+		A9C70F911A9A571D00171F50 /* texture */ = {
+			isa = PBXGroup;
+			children = (
+				A97BC63C1A97D7A80076E1FA /* challenge.tga */,
+				A97BC63D1A97D7A80076E1FA /* earth.tga */,
+				A97BC6501A99684A0076E1FA /* texture.tga */,
+				A97BC64A1A97DDD60076E1FA /* newYear.tga */,
+				A9C70F901A9A571200171F50 /* texture_grass.tga */,
+				A9C70F931A9A6F8F00171F50 /* texture_rock.tga */,
+			);
+			name = texture;
+			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
