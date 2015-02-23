@@ -1,6 +1,5 @@
 #pragma once
 #include "Utilities.h"
-#include <vector>
 
 struct ShapeData	{	GLuint vao;
 						int numVertices;
@@ -25,7 +24,6 @@ point3 cubeNormals[numCubeVertices];
 point2 cubeUV     [numCubeVertices];
 point2 customizedUVpoints[6];
 
-std::vector<point4*> cubePointsVec(6);
 
 // Vertices of a unit cube centered at origin, sides aligned with axes
 point4 vertices[8] = {

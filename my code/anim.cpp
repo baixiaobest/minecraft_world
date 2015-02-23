@@ -34,6 +34,9 @@ TgaImage newYearImage("newYear.tga");
 TgaImage pyramidBricksImage("pyramid_bricks.tga");
 TgaImage stoveImage("texture_stove.tga");
 TgaImage mobHeadImage("texture.tga");
+TgaImage mobBodyImage("texture_mob_body.tga");
+TgaImage mobArmImage("texture_mob_arm.tga");
+TgaImage mobLegImage("texture_mob_leg.tga");
 int currentCustomizedImageTexture = NONE;
 int currentCubeImageTexture = NONE;
 
@@ -538,9 +541,79 @@ void sceneSetup()
  createCharacter() function
  *********************************************************/
 mat4 characterPosition;
+double scaleFactor = 0.6;
+const double headDimention = 1 * scaleFactor;
+const double bodyWidth_X = 0.6 * scaleFactor;
+const double bodyWidth_Y = 1 * scaleFactor;
+const double bodyHeight = 1.4 * scaleFactor;
+const double armWidth_X = bodyWidth_X;
+const double armWidth_Y = 0.4 * scaleFactor;
+const double armLength = 1.6 * scaleFactor;
+const double legWidth_X = bodyWidth_X;
+const double legWidth_Y = bodyWidth_Y/2;
+const double legLength = 1.8 * scaleFactor;
+const double totalHeight = 1 + bodyHeight + legLength;
 void createCharacter()
 {
-    //setTextureImage2(currentCustomizedImageTexture, ")
+    mvstack.push(model_view);
+    model_view = characterPosition;
+    
+    //draw head
+    setTextureImage2(texture_customized_cube, mobHeadImage);
+    mvstack.push(model_view);
+    model_view *= Scale(headDimention, headDimention, headDimention);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
+    
+    //drawBody
+    model_view *= Translate(0, 0, -headDimention/2-bodyHeight/2);
+    setTextureImage2(texture_customized_cube, mobBodyImage);
+    mvstack.push(model_view);
+    model_view *= Scale(bodyWidth_X, bodyWidth_Y, bodyHeight);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
+    
+    //draw arms
+    //left arm
+    mvstack.push(model_view);
+    model_view *= Translate(0, bodyWidth_Y/2+armWidth_Y/2, bodyHeight/2); //joint
+    model_view *= RotateY(-7*sin(5*AnimatedTime)); // rotates arm
+    model_view *= Translate(0, 0, -armLength/2);
+    model_view *= Scale(armWidth_X, armWidth_Y, armLength);
+    setTextureImage2(texture_customized_cube, mobArmImage);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
+    //right arm
+    mvstack.push(model_view);
+    model_view *= Translate(0, -(bodyWidth_Y/2+armWidth_Y/2), bodyHeight/2); //joint
+    model_view *= RotateY(7*sin(5*AnimatedTime));   //rotates arm
+    model_view *= Translate(0, 0, -armLength/2);
+    model_view *= Scale(armWidth_X, armWidth_Y, armLength);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
+    
+    //draw legs
+    //left leg
+    mvstack.push(model_view);
+    model_view *= Translate(0, bodyWidth_Y/2-legWidth_Y/2, -bodyHeight/2); // joint
+    model_view *= RotateY(10*sin(5*AnimatedTime));
+    model_view *= Translate(0, 0, -legLength/2);
+    setTextureImage2(texture_customized_cube, mobLegImage);
+    model_view *= Scale(legWidth_X, legWidth_Y, legLength);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
+    //right leg
+    mvstack.push(model_view);
+    model_view *= Translate(0, -(bodyWidth_Y/2-legWidth_Y/2), -bodyHeight/2); // joint
+    model_view *= RotateY(-10*sin(5*AnimatedTime));
+    model_view *= Translate(0, 0, -legLength/2);
+    setTextureImage2(texture_customized_cube, mobLegImage);
+    model_view *= Scale(legWidth_X, legWidth_Y, legLength);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
+    
+    
+    model_view = mvstack.top(); mvstack.pop();
 }
 
 /*********************************************************
@@ -569,12 +642,16 @@ void display(void)
         unrotatedPoint = eye;
     }
     
-    model_view *= RotateX(-90);                 drawAxes(basis_id++);
-    model_view *= Translate(0, 4, 0);
-    mat4 start = model_view;
-    characterPosition = model_view;
+    model_view *= RotateX(-90);
+    characterPosition = model_view;                         drawAxes(basis_id++);
+    //characterPosition *= Translate(-3, -2, totalHeight);
+    //characterPosition *= RotateZ(180);
+    
+    model_view *= Translate(-4, -3, -totalHeight);
+    model_view *= RotateZ(180);                             drawAxes(basis_id++);
     sceneSetup();
     createCharacter();
+    
     
 
     

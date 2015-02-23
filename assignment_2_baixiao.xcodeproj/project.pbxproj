@@ -29,6 +29,8 @@
 		A9279F1A1A9AB339003B327A /* pyramid_bricks.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = pyramid_bricks.tga; sourceTree = "<group>"; };
 		A9279F1B1A9ABA65003B327A /* texture_stove.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_stove.tga; sourceTree = "<group>"; };
 		A9279F1C1A9AC040003B327A /* texture_mob_body.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_mob_body.tga; sourceTree = "<group>"; };
+		A9279F1D1A9AD9C6003B327A /* texture_mob_leg.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_mob_leg.tga; sourceTree = "<group>"; };
+		A9279F1E1A9ADD65003B327A /* texture_mob_arm.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_mob_arm.tga; sourceTree = "<group>"; };
 		A97BC6301A97D6F50076E1FA /* assignment_2_baixiao */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = assignment_2_baixiao; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97BC63C1A97D7A80076E1FA /* challenge.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = challenge.tga; sourceTree = "<group>"; };
 		A97BC63D1A97D7A80076E1FA /* earth.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = earth.tga; sourceTree = "<group>"; };
@@ -118,6 +120,8 @@
 				A9279F1A1A9AB339003B327A /* pyramid_bricks.tga */,
 				A9279F1B1A9ABA65003B327A /* texture_stove.tga */,
 				A9279F1C1A9AC040003B327A /* texture_mob_body.tga */,
+				A9279F1D1A9AD9C6003B327A /* texture_mob_leg.tga */,
+				A9279F1E1A9ADD65003B327A /* texture_mob_arm.tga */,
 			);
 			name = texture;
 			sourceTree = "<group>";
