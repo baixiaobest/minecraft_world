@@ -393,3 +393,15 @@ inline mat4 LookAt( const vec4& eye, const vec4& at, const vec4& up )
     mat4 c = mat4(u, v, n, t);
     return c * Translate( -eye );
 }
+
+inline mat4 inverse(const mat4 &A)
+{
+    mat4 m = transpose(A);
+    m[3][0] = 0;
+    m[3][1] = 0;
+    m[3][2] = 0;
+    m[0][3] = -(A[0][3]*m[0][0]+A[1][3]*m[0][1]+A[2][3]*m[0][2]);
+    m[1][3] = -(A[0][3]*m[1][0]+A[1][3]*m[1][1]+A[2][3]*m[1][2]);
+    m[2][3] = -(A[0][3]*m[2][0]+A[1][3]*m[2][1]+A[2][3]*m[2][2]);
+    return m;
+}

@@ -40,6 +40,14 @@ TgaImage mobLegImage("texture_mob_leg.tga");
 int currentCustomizedImageTexture = NONE;
 int currentCubeImageTexture = NONE;
 
+mat4 characterTransform; //transform done to character
+mat4 characterPosition;  //position of character
+bool charPosInit = false; //if character initial position is setup
+
+enum charBehavior{NO_BEHAVIOR, FORWARD, BACKWARD, LEFT, RIGHT, TURN_LEFT, TURN_RIGHT};
+int currentBehavior = NO_BEHAVIOR;
+int behaviorCount;
+int lastBehavior = NO_BEHAVIOR;
 
 void init()
 {
@@ -509,7 +517,7 @@ void sceneSetup()
 {
     
     mvstack.push(model_view);
-    model_view *= Translate(-10, -10, 0);
+    //model_view *= Translate(-10, -10, 0);
     mapTerrain(layer1);
     model_view *= Translate(0, 0, 1);
     mapTerrain(layer2);
@@ -523,7 +531,7 @@ void sceneSetup()
     mapTerrain(layer5);
     model_view = mvstack.top(); mvstack.pop();
     
-    model_view *= Translate(-3, -5, 1);                  drawAxes(basis_id++);
+    model_view *= Translate(7, 6, 1);                  drawAxes(basis_id++);
     mapObject(house_L1, HOUSE_HEIGHT);
     model_view *= Translate(0, 0, 1);
     mapObject(house_L2, HOUSE_HEIGHT);
@@ -540,8 +548,7 @@ void sceneSetup()
 /*********************************************************
  createCharacter() function
  *********************************************************/
-mat4 characterPosition;
-double scaleFactor = 0.6;
+double scaleFactor = 0.5;
 const double headDimention = 1 * scaleFactor;
 const double bodyWidth_X = 0.6 * scaleFactor;
 const double bodyWidth_Y = 1 * scaleFactor;
@@ -552,11 +559,11 @@ const double armLength = 1.6 * scaleFactor;
 const double legWidth_X = bodyWidth_X;
 const double legWidth_Y = bodyWidth_Y/2;
 const double legLength = 1.8 * scaleFactor;
-const double totalHeight = 1 + bodyHeight + legLength;
+const double totalHeight = headDimention + bodyHeight + legLength;
 void createCharacter()
 {
     mvstack.push(model_view);
-    model_view = characterPosition;
+    model_view = characterPosition*characterTransform;
     
     //draw head
     setTextureImage2(texture_customized_cube, mobHeadImage);
@@ -577,7 +584,8 @@ void createCharacter()
     //left arm
     mvstack.push(model_view);
     model_view *= Translate(0, bodyWidth_Y/2+armWidth_Y/2, bodyHeight/2); //joint
-    model_view *= RotateY(-7*sin(5*AnimatedTime)); // rotates arm
+    if (behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT)
+        model_view *= RotateY(-10*sin(10*AnimatedTime)); // rotates arm
     model_view *= Translate(0, 0, -armLength/2);
     model_view *= Scale(armWidth_X, armWidth_Y, armLength);
     setTextureImage2(texture_customized_cube, mobArmImage);
@@ -586,7 +594,8 @@ void createCharacter()
     //right arm
     mvstack.push(model_view);
     model_view *= Translate(0, -(bodyWidth_Y/2+armWidth_Y/2), bodyHeight/2); //joint
-    model_view *= RotateY(7*sin(5*AnimatedTime));   //rotates arm
+    if (behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT)
+        model_view *= RotateY(10*sin(10*AnimatedTime));   //rotates arm
     model_view *= Translate(0, 0, -armLength/2);
     model_view *= Scale(armWidth_X, armWidth_Y, armLength);
     drawCustomizedCube();
@@ -596,7 +605,8 @@ void createCharacter()
     //left leg
     mvstack.push(model_view);
     model_view *= Translate(0, bodyWidth_Y/2-legWidth_Y/2, -bodyHeight/2); // joint
-    model_view *= RotateY(10*sin(5*AnimatedTime));
+    if (behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT)
+        model_view *= RotateY(10*sin(10*AnimatedTime));
     model_view *= Translate(0, 0, -legLength/2);
     setTextureImage2(texture_customized_cube, mobLegImage);
     model_view *= Scale(legWidth_X, legWidth_Y, legLength);
@@ -605,7 +615,8 @@ void createCharacter()
     //right leg
     mvstack.push(model_view);
     model_view *= Translate(0, -(bodyWidth_Y/2-legWidth_Y/2), -bodyHeight/2); // joint
-    model_view *= RotateY(-10*sin(5*AnimatedTime));
+    if(behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT)
+        model_view *= RotateY(-10*sin(10*AnimatedTime));
     model_view *= Translate(0, 0, -legLength/2);
     setTextureImage2(texture_customized_cube, mobLegImage);
     model_view *= Scale(legWidth_X, legWidth_Y, legLength);
@@ -614,6 +625,56 @@ void createCharacter()
     
     
     model_view = mvstack.top(); mvstack.pop();
+}
+
+/*********************************************************
+ behave() function
+ *********************************************************/
+void behave(int behavior)
+{
+    switch (behavior) {
+        case FORWARD:
+            characterTransform *= Translate(0.21, 0, 0);
+            lastBehavior = FORWARD;
+            break;
+        case BACKWARD:
+            characterTransform *= Translate(-0.21, 0, 0);
+            lastBehavior = BACKWARD;
+            break;
+        case LEFT:
+            characterTransform *= Translate(0, 0.2, 0);
+            lastBehavior = LEFT;
+            break;
+        case RIGHT:
+            characterTransform *= Translate(0, -0.2, 0);
+            lastBehavior = RIGHT;
+            break;
+        case TURN_LEFT:
+            characterTransform *= RotateZ(3);
+            lastBehavior = TURN_LEFT;
+            break;
+        case TURN_RIGHT:
+            characterTransform *= RotateZ(-4);
+            lastBehavior = TURN_RIGHT;
+            break;
+        default: ;
+    }
+}
+
+/*********************************************************
+ transformCharacter() function
+ *********************************************************/
+void transformCharacter()
+{
+    if (currentBehavior!=NONE) {
+        behaviorCount = 5;
+        behave(currentBehavior);
+        currentBehavior = NONE;
+    }
+    else if (behaviorCount>0) {
+        behaviorCount--;
+        behave(lastBehavior);
+    }
 }
 
 /*********************************************************
@@ -636,21 +697,32 @@ void display(void)
     float timeToRotate = 10;
     float rotationSceneTime = AnimatedTime - rotationBeginTime;
     if (rotationSceneTime > 0 && rotationSceneTime < timeToRotate) {
-        eye = RotateY(360/timeToRotate*rotationSceneTime)*unrotatedPoint;
+        //eye = RotateY(360/timeToRotate*rotationSceneTime)*unrotatedPoint;
     }
     if (0<TIME && TIME < rotationBeginTime) {
         unrotatedPoint = eye;
     }
-    
     model_view *= RotateX(-90);
-    characterPosition = model_view;                         drawAxes(basis_id++);
-    //characterPosition *= Translate(-3, -2, totalHeight);
-    //characterPosition *= RotateZ(180);
+    model_view *= RotateZ(180);    //initial setup for coordinate sys
     
-    model_view *= Translate(-4, -3, -totalHeight);
-    model_view *= RotateZ(180);                             drawAxes(basis_id++);
+    
+    transformCharacter();                                       //define transform matrix for character
+    model_view *= inverse(characterTransform);                  //camera tracking of character
+    characterPosition = model_view;     drawAxes(basis_id++);
+    
+    //initial setup of position for character
+    if (!charPosInit) {
+        charPosInit = true;
+        characterTransform = Translate(5, 5, 0.2+totalHeight);
+        characterPosition *= Translate(5, 5, 0.2+totalHeight);
+    }
+    
+    
+
+    //model_view *= Translate(-4, -3, -0.2-totalHeight);
+    //model_view *= RotateZ(180);                             drawAxes(basis_id++);
+    createCharacter();                  drawAxes(basis_id++);
     sceneSetup();
-    createCharacter();
     
     
 
@@ -694,6 +766,26 @@ void myKey(unsigned char key, int x, int y)
         case 'r':
 			orientation = mat4();			
             break ;
+        case 'i':
+            currentBehavior = FORWARD;
+            break;
+        case 'k':
+            currentBehavior = BACKWARD;
+            break;
+        case 'j':
+            currentBehavior = LEFT;
+            break;
+        case 'l':
+            currentBehavior = RIGHT;
+            break;
+        case 'u':
+            currentBehavior = TURN_LEFT;
+            break;
+        case 'o':
+            currentBehavior = TURN_RIGHT;
+            break;
+        default:
+            currentBehavior = NO_BEHAVIOR;
     }
     glutPostRedisplay() ;
 }
