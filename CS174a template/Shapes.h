@@ -9,6 +9,7 @@ struct ShapeData	{	GLuint vao;
 
 void generateCube(GLuint program, ShapeData* cubeData);
 void generateCutomizedCube(GLint program, ShapeData* cubeData);
+void generatePyramid(GLint program, ShapeData* pyramidData);
 void generateSphere(GLuint program, ShapeData* sphereData);
 void generateCone(GLuint program, ShapeData* coneData);
 void generateCylinder(GLuint program, ShapeData* cylData);
@@ -48,6 +49,7 @@ point4 c_vertices[8] = {
     point4(  0.5,  0.5, -0.5, 1 ),
     point4(  0.5, -0.5, -0.5, 1 )
 };
+
 
 // quad generates two triangles for each face and assigns normals and texture coordinates
 //    to the vertices
@@ -149,6 +151,71 @@ void generateCustomizedCube(GLint program, ShapeData* cubeData)
                     (float*)cubeUV,      sizeof(cubeUV));
 }
 
+
+/************************************************************************/
+
+const int numPyramidVertices = 18;
+point4 pyramidPoints [numPyramidVertices];
+point3 pyramidNormals[numPyramidVertices];
+point2 pyramidUV     [numPyramidVertices];
+point4 pyramid_vertices[5] = {
+    point4(    0,    0,  0.5, 1 ),
+    point4( -0.5, -0.5,    0, 1 ),
+    point4( -0.5,  0.5,    0, 1 ),
+    point4(  0.5,  0.5,    0, 1 ),
+    point4(  0.5, -0.5,    0, 1 ),
+};
+int p_index = 0;
+void p_quad( int a, int b, int c, const point3& normal )
+{
+    pyramidPoints[p_index] = pyramid_vertices[a]; pyramidNormals[p_index] = normal;
+    pyramidUV[p_index] = point2(0.5, 1); p_index++;
+    pyramidPoints[p_index] = pyramid_vertices[b]; pyramidNormals[p_index] = normal;
+    pyramidUV[p_index] = point2(0, 0); p_index++;
+    pyramidPoints[p_index] = pyramid_vertices[c]; pyramidNormals[p_index] = normal;
+    pyramidUV[p_index] = point2(1, 0); p_index++;
+}
+
+void p_quad2(int a, int b, int c, int d, const point3& normal)
+{
+    pyramidPoints[p_index] = pyramid_vertices[a]; pyramidNormals[p_index] = normal;
+    pyramidUV[p_index] = point2(0, 1); p_index++;
+    pyramidPoints[p_index] = pyramid_vertices[b]; pyramidNormals[p_index] = normal;
+    pyramidUV[p_index] = point2(0, 0); p_index++;
+    pyramidPoints[p_index] = pyramid_vertices[c]; pyramidNormals[p_index] = normal;
+    pyramidUV[p_index] = point2(1, 0); p_index++;
+    pyramidPoints[p_index] = pyramid_vertices[a]; pyramidNormals[p_index] = normal;
+    pyramidUV[p_index] = point2(0, 1); p_index++;
+    pyramidPoints[p_index] = pyramid_vertices[c]; pyramidNormals[p_index] = normal;
+    pyramidUV[p_index] = point2(1, 0); p_index++;
+    pyramidPoints[p_index] = pyramid_vertices[d]; pyramidNormals[p_index] = normal;
+    pyramidUV[p_index] = point2(1, 1); p_index++;
+}
+
+void colorPyramid()
+{
+    p_quad(0, 1, 4, point3(0, -0.70710678118, 0.70710678118));
+    p_quad(0, 4, 3, point3(0.70710678118, 0, 0.70710678118));
+    p_quad(0, 3, 2, point3(0, 0.70710678118, 0.70710678118));
+    p_quad(0, 2, 1, point3(-0.70710678118, 0, 0.70710678118));
+    p_quad2(2, 3, 4, 1,point3(0, 0, -1));
+}
+
+void generatePyramid(GLint program, ShapeData* pyramidData)
+{
+    colorPyramid();
+    pyramidData->numVertices = numPyramidVertices;
+    
+    // Create a vertex array object
+    glGenVertexArrays( 1, &pyramidData->vao );
+    glBindVertexArray( pyramidData->vao );
+    
+    // Set vertex attributes
+    setVertexAttrib(program,
+                    (float*)pyramidPoints,  sizeof(pyramidPoints),
+                    (float*)pyramidNormals, sizeof(pyramidNormals),
+                    (float*)pyramidUV,      sizeof(pyramidUV));
+}
 
 //----------------------------------------------------------------------------
 // Sphere approximation by recursive subdivision of a tetrahedron

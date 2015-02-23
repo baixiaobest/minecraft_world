@@ -19,8 +19,8 @@ const unsigned X = 0, Y = 1, Z = 2;
 vec4 eye( 10, 10, 0, 1), ref( 0, 0, 0, 1 ), up( 0, 1, 0, 0 );	// The eye point and look-at point.
 
 mat4	orientation, model_view;
-ShapeData cubeData, sphereData, coneData, cylData, customizedCubeData;				// Structs that hold the Vertex Array Object index and number of vertices of each shape.
-GLuint	texture_cube, texture_earth, texture_customized_cube;
+ShapeData cubeData, sphereData, coneData, cylData, customizedCubeData, pyramidData;				// Structs that hold the Vertex Array Object index and number of vertices of each shape.
+GLuint	texture_cube, texture_earth, texture_customized_cube, texture_pyramid;
 GLint   uModelView, uProjection, uView,
 		uAmbient, uDiffuse, uSpecular, uLightPos, uShininess,
 		uTex, uEnableTex;
@@ -28,6 +28,12 @@ GLint   uModelView, uProjection, uView,
 
 TgaImage grassImage("texture_grass.tga");
 TgaImage rockImage("texture_rock.tga");
+TgaImage brickImage("texture_brick.tga");
+TgaImage doorImage("texture_door.tga");
+TgaImage newYearImage("newYear.tga");
+TgaImage pyramidBricksImage("pyramid_bricks.tga");
+TgaImage stoveImage("texture_stove.tga");
+TgaImage mobHeadImage("texture.tga");
 int currentCustomizedImageTexture = NONE;
 int currentCubeImageTexture = NONE;
 
@@ -50,6 +56,7 @@ void init()
 
 	generateCube(program, &cubeData);		// Generate vertex arrays for geometric shapes
     generateCustomizedCube(program, &customizedCubeData);
+    generatePyramid(program, &pyramidData);
     generateSphere(program, &sphereData);
     generateCone(program, &coneData);
     generateCylinder(program, &cylData);
@@ -109,6 +116,17 @@ void init()
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     
+    
+    glGenTextures( 1, &texture_pyramid );
+    glBindTexture( GL_TEXTURE_2D, texture_pyramid );
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, 4, pyramidBricksImage.width, pyramidBricksImage.height, 0,
+                 (pyramidBricksImage.byteCount == 3) ? GL_BGR : GL_BGRA,
+                 GL_UNSIGNED_BYTE, pyramidBricksImage.data );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     
     glUniform1i( uTex, 0);	// Set texture sampler variable to texture unit 0
 	
@@ -208,6 +226,16 @@ void drawCustomizedCube()
     glUniformMatrix4fv( uModelView, 1, GL_FALSE, transpose(model_view) );
     glBindVertexArray( customizedCubeData.vao );
     glDrawArrays( GL_TRIANGLES, 0, customizedCubeData.numVertices );
+    glUniform1i( uEnableTex, 0 );
+}
+
+void drawPyramid()
+{
+   	glBindTexture( GL_TEXTURE_2D, texture_pyramid );
+    glUniform1i( uEnableTex, 1 );
+    glUniformMatrix4fv( uModelView, 1, GL_FALSE, transpose(model_view) );
+    glBindVertexArray( pyramidData.vao );
+    glDrawArrays( GL_TRIANGLES, 0, pyramidData.numVertices );
     glUniform1i( uEnableTex, 0 );
 }
 
@@ -380,6 +408,10 @@ void setTextureImage2(GLuint &texture, TgaImage& newImg)
     glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 }
 
+/*********************************************************
+ mapTerrain()
+ DOES: draw the given terrain
+ *********************************************************/
 
 void mapTerrain(int layer[][TERRAIN_SIZE])
 {
@@ -404,42 +436,74 @@ void mapTerrain(int layer[][TERRAIN_SIZE])
                 }
                 drawCube();
             }
+            if (layer[i][k] == BRICK) {
+                if (currentCustomizedImageTexture != BRICK) {
+                    setTextureImage2(texture_customized_cube, brickImage);
+                    currentCustomizedImageTexture = BRICK;
+                }
+                drawCustomizedCube();
+            }
             model_view *= Translate(1, 0, 0);
         }
         model_view = mvstack.top(); mvstack.pop();
-        model_view *= Translate(0, 1, 0); drawAxes(basis_id++);
+        model_view *= Translate(0, 1, 0);
     }
     model_view = mvstack.top(); mvstack.pop();
 }
 
+/*********************************************************
+ mapTerrain()
+ DOES: draw the given object in layer
+ *********************************************************/
+
+void mapObject(int layer[][OBJECT_WIDTH], int height)
+{
+    mvstack.push(model_view);
+    for (int i=0; i<height; i++) {
+        mvstack.push(model_view);
+        for (int k=0; k<OBJECT_WIDTH; k++) {
+            
+            if (layer[i][k] == BRICK) {
+                if (currentCustomizedImageTexture != BRICK) {
+                    setTextureImage2(texture_customized_cube, brickImage);
+                    currentCustomizedImageTexture = BRICK;
+                }
+                drawCustomizedCube();
+            }
+            if (layer[i][k] == DOOR) {
+                if (currentCubeImageTexture != DOOR) {
+                    setTextureImage2(texture_customized_cube, doorImage);
+                    currentCustomizedImageTexture = DOOR;
+                }
+                mvstack.push(model_view);
+                model_view *= Translate(0, 0, 0.5);
+                model_view *= Scale(0.1, 1, 2);
+                drawCustomizedCube();
+                model_view = mvstack.top(); mvstack.pop();
+            }
+            if (layer[i][k] == STOVE) {
+                if (currentCustomizedImageTexture != STOVE) {
+                    setTextureImage2(texture_customized_cube, stoveImage);
+                    currentCustomizedImageTexture = STOVE;
+                }
+                mvstack.push(model_view);
+                model_view *= RotateZ(180);
+                drawCustomizedCube();
+                model_view = mvstack.top(); mvstack.pop();
+            }
+            model_view *= Translate(1, 0, 0);
+        }
+        model_view = mvstack.top(); mvstack.pop();
+        model_view *= Translate(0, 1, 0);
+    }
+    model_view = mvstack.top(); mvstack.pop();
+}
 
 /*********************************************************
- display() function
+ sceneSetup() function
  *********************************************************/
-vec4 unrotatedPoint = eye;
-void display(void)
+void sceneSetup()
 {
-	basis_id = 0;
-    glClearColor( .1, .1, .2, 1 );
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	set_color( .6, .6, .6 );
-	
-	model_view = LookAt( eye, ref, up );
-
-	model_view *= orientation;
-    model_view *= Scale(zoom);							drawAxes(basis_id++);
-    
-    float rotationBeginTime = 0;
-    float timeToRotate = 10;
-    float rotationSceneTime = AnimatedTime - rotationBeginTime;
-    if (rotationSceneTime > 0 && rotationSceneTime < timeToRotate) {
-        eye = RotateY(360/timeToRotate*rotationSceneTime)*unrotatedPoint;
-    }
-    if (0<TIME && TIME < rotationBeginTime) {
-        unrotatedPoint = eye;
-    }
-    
-    model_view *= RotateX(-90);                         drawAxes(basis_id++);
     
     mvstack.push(model_view);
     model_view *= Translate(-10, -10, 0);
@@ -452,23 +516,66 @@ void display(void)
     mapTerrain(layer4);
     model_view *= Translate(0, 0, 1);
     mapTerrain(layer5);
+    model_view *= Translate(0, 0, 1);
+    mapTerrain(layer5);
     model_view = mvstack.top(); mvstack.pop();
     
+    model_view *= Translate(-3, -5, 1);                  drawAxes(basis_id++);
+    mapObject(house_L1, HOUSE_HEIGHT);
+    model_view *= Translate(0, 0, 1);
+    mapObject(house_L2, HOUSE_HEIGHT);
+    model_view *= Translate(0, 0, 1);                    drawAxes(basis_id++);
+    mapObject(house_L3, HOUSE_HEIGHT);
     
+    model_view *= Translate(4, 2, 0);                    drawAxes(basis_id++);
+    mvstack.push(model_view);
+    model_view *= Scale(5, 5, 5);
+    drawPyramid();
+    model_view = mvstack.top(); mvstack.pop();           drawAxes(basis_id++);
+}
+
+/*********************************************************
+ createCharacter() function
+ *********************************************************/
+mat4 characterPosition;
+void createCharacter()
+{
+    //setTextureImage2(currentCustomizedImageTexture, ")
+}
+
+/*********************************************************
+ display() function
+ *********************************************************/
+vec4 unrotatedPoint = eye;
+void display(void)
+{
+	basis_id = 0;
+    glClearColor( .1, .1, .2, 1 );
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	set_color( 1, 1, 1 );
+	
+	model_view = LookAt( eye, ref, up );
+
+	model_view *= orientation;
+    model_view *= Scale(zoom);
     
+    float rotationBeginTime = 0;
+    float timeToRotate = 10;
+    float rotationSceneTime = AnimatedTime - rotationBeginTime;
+    if (rotationSceneTime > 0 && rotationSceneTime < timeToRotate) {
+        eye = RotateY(360/timeToRotate*rotationSceneTime)*unrotatedPoint;
+    }
+    if (0<TIME && TIME < rotationBeginTime) {
+        unrotatedPoint = eye;
+    }
     
+    model_view *= RotateX(-90);                 drawAxes(basis_id++);
+    model_view *= Translate(0, 4, 0);
+    mat4 start = model_view;
+    characterPosition = model_view;
+    sceneSetup();
+    createCharacter();
     
-    /*
-    drawCustomizedCube();
-     
-    model_view *= Translate(0, 1.5, 0);                 drawAxes(basis_id++);
-    GLuint tmp = texture_customized_cube;
-    setTextureImage2(texture_customized_cube, grassImage);
-    drawCustomizedCube();
-    texture_customized_cube = tmp;
-    
-    model_view *= Translate(3, 0, 0);                    drawAxes(basis_id++);
-    drawCustomizedCube();*/
 
     
     glutSwapBuffers();

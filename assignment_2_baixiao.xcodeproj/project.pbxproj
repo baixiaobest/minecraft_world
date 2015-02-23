@@ -25,6 +25,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A9279F191A9A9610003B327A /* texture_door.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_door.tga; sourceTree = "<group>"; };
+		A9279F1A1A9AB339003B327A /* pyramid_bricks.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = pyramid_bricks.tga; sourceTree = "<group>"; };
+		A9279F1B1A9ABA65003B327A /* texture_stove.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_stove.tga; sourceTree = "<group>"; };
+		A9279F1C1A9AC040003B327A /* texture_mob_body.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_mob_body.tga; sourceTree = "<group>"; };
 		A97BC6301A97D6F50076E1FA /* assignment_2_baixiao */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = assignment_2_baixiao; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97BC63C1A97D7A80076E1FA /* challenge.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = challenge.tga; sourceTree = "<group>"; };
 		A97BC63D1A97D7A80076E1FA /* earth.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = earth.tga; sourceTree = "<group>"; };
@@ -42,6 +46,7 @@
 		A9C70F901A9A571200171F50 /* texture_grass.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_grass.tga; sourceTree = "<group>"; };
 		A9C70F921A9A593600171F50 /* terrainMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = terrainMap.h; sourceTree = "<group>"; };
 		A9C70F931A9A6F8F00171F50 /* texture_rock.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_rock.tga; sourceTree = "<group>"; };
+		A9C70F941A9A883100171F50 /* texture_brick.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_brick.tga; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,6 +113,11 @@
 				A97BC64A1A97DDD60076E1FA /* newYear.tga */,
 				A9C70F901A9A571200171F50 /* texture_grass.tga */,
 				A9C70F931A9A6F8F00171F50 /* texture_rock.tga */,
+				A9C70F941A9A883100171F50 /* texture_brick.tga */,
+				A9279F191A9A9610003B327A /* texture_door.tga */,
+				A9279F1A1A9AB339003B327A /* pyramid_bricks.tga */,
+				A9279F1B1A9ABA65003B327A /* texture_stove.tga */,
+				A9279F1C1A9AC040003B327A /* texture_mob_body.tga */,
 			);
 			name = texture;
 			sourceTree = "<group>";
