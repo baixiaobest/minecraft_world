@@ -44,6 +44,7 @@ TgaImage roadPaintImage("road_paint.tga");
 TgaImage pavementImage("texture_pavement.tga");
 TgaImage roadImage("texture_road.tga");
 TgaImage buildingBricksImage("texture_building_bricks.tga");
+TgaImage balconyImage("texture_balcony.tga");
 int currentCustomizedImageTexture = NONE;
 int currentCubeImageTexture = NONE;
 
@@ -52,6 +53,8 @@ mat4 characterPosition;  //position of character
 bool charPosInit = false; //if character initial position is setup
 
 enum charBehavior{NO_BEHAVIOR, FORWARD, BACKWARD, LEFT, RIGHT, TURN_LEFT, TURN_RIGHT};
+enum scene{HOME, CITY, CAVE};
+int currentScene = HOME;
 int currentBehavior = NO_BEHAVIOR;
 int behaviorCount;
 int lastBehavior = NO_BEHAVIOR;
@@ -456,6 +459,13 @@ void mapTerrain(int layer[][TERRAIN_SIZE])
                 }
                 drawCube();
             }
+            if (layer[i][k] == BALCONY) {
+                if (currentCustomizedImageTexture != BALCONY){
+                    setTextureImage2(texture_customized_cube, balconyImage);
+                    currentCustomizedImageTexture = BALCONY;
+                }
+                drawCustomizedCube();
+            }
             if (layer[i][k] == TREE) {
                 mvstack.push(model_view);
                 mapObject(treeL1, 5);
@@ -727,25 +737,46 @@ void transformCharacter()
     }
 }
 
+
 /*********************************************************
  newWorldSceneSetup() function
  *********************************************************/
-bool entryToNewWorld = false;
+const double buildingPos[2] = {20, 3};
+const double stairWayPos[2] = {buildingPos[0]+0.5, buildingPos[1]+9.5};
+const int cityLength = 80;
 void newWorldSceneSetup()
 {
     //draw pavement
-    setTextureImage2(texture_cube, pavementImage);drawAxes(basis_id++);
-    generateTerrain(false, 80, 20);
+    setTextureImage2(texture_cube, pavementImage);
+    generateTerrain(false, cityLength, 20);
     //draw road
     mvstack.push(model_view);
     model_view *= Translate(0, 20, 0);
     setTextureImage2(texture_cube, roadImage);
-    generateTerrain(false, 80, 4);
+    currentCubeImageTexture = ROAD;
+    generateTerrain(false, cityLength, 4);
+    model_view *= Translate(0, 5, 0);
+    generateTerrain(false, cityLength, 4);
+    model_view *= Translate(0, -1, 0);
+    for(int i=0; i<cityLength/10; i++)
+    {
+        generateTerrain(false, 2, 1);
+        setTextureImage2(texture_cube,roadPaintImage);
+        model_view *= Translate(2, 0, 0);
+        generateTerrain(false, 6, 1);
+        model_view *= Translate(6, 0, 0);
+        setTextureImage2(texture_cube, roadImage);
+        generateTerrain(false, 2, 1);
+        model_view *= Translate(2, 0, 0);
+    }
     model_view = mvstack.top(); mvstack.pop();
+    
+    
+    
     //draw skyscraper
     mvstack.push(model_view);
     model_view *= Translate(0, 0, 1);
-    model_view *= Translate(20, 3, 0);
+    model_view *= Translate(buildingPos[0], buildingPos[1], 0);
     for (int i=0; i<4; i++) {
         mapTerrain(building_L1);
         mapTerrain(building_L1_M2);
@@ -753,15 +784,62 @@ void newWorldSceneSetup()
     }
     for (int k=0; k<10; k++) {
         mapTerrain(building_L2);
+        mapTerrain(building_L2_M2);
         model_view *= Translate(0, 0, 1);
         mapTerrain(building_L1);
+        mapTerrain(building_L2_M2);
         model_view *= Translate(0, 0, 1);
         mapTerrain(building_L1);
         model_view *= Translate(0, 0, 1);
     }
     mapTerrain(building_L2);
+    model_view *= Translate(0, 0, 1);
+    mapTerrain(building_L3);
+    model_view *= Translate(0, 0, 1);
+    mapTerrain(building_L4);
+    model_view *= Translate(0, 0, 1);
+    mapTerrain(building_L5);
+    for (int i=0; i<5; i++) {
+        model_view *= Translate(0, 0, 1);
+        mapTerrain(building_L6);
+    }
     model_view = mvstack.top(); mvstack.pop();
     
+    mvstack.push(model_view);
+    model_view *= Translate(stairWayPos[0], stairWayPos[1], 2.5);
+    model_view *= Scale(0.1, 2, 4);
+    setTextureImage2(texture_customized_cube, magicDoorImage);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
+    
+    mvstack.push(model_view);
+    model_view *= Translate(stairWayPos[0]+2, stairWayPos[1]+0.5, 1.5+35);
+    model_view *= Scale(0.1, 1, 2);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
+    
+}
+
+/*********************************************************
+ triggerEvent() function
+ *********************************************************/
+bool trigger1 = false;
+void triggerEvent()
+{
+    if (currentScene == CITY) {
+        if (characterTransform[0][3] >= stairWayPos[0] && characterTransform[0][3]<= stairWayPos[0]+1
+            &&  characterTransform[1][3] >= stairWayPos[1]-1 && characterTransform[1][3] <= stairWayPos[1]+1
+            && trigger1 == false) {
+            characterTransform *= RotateZ(180)*Translate(0, 0, 35);
+            trigger1 = true;
+        }
+        if (characterTransform[0][3] >= stairWayPos[0]+1 && characterTransform[0][3]<= stairWayPos[0]+3
+            &&  characterTransform[1][3] >= stairWayPos[1] && characterTransform[1][3] <= stairWayPos[1]+1
+            && trigger1 == true){
+            characterTransform *= Translate(0, 0, -35);
+            trigger1 = false;
+        }
+    }
 }
 
 /*********************************************************
@@ -811,18 +889,20 @@ void display(void)
     printf("x: %f y: %f\n",characterTransform[0][3], characterTransform[1][3]);
     if (characterTransform[1][3] <=1+magicDoorPosition[1] && characterTransform[1][3] >= magicDoorPosition[1]
     &&  characterTransform[0][3] <= magicDoorPosition[0]+0.5 && characterTransform[0][3] >= magicDoorPosition[0]-0.5 && (AnimatedTime > magicDoorApearTime) ) {
-        entryToNewWorld = true;
+        currentScene = CITY;
     }
-    if (!entryToNewWorld) {
-        sceneSetup();
+    switch (currentScene) {
+        case HOME:
+            sceneSetup();
+            break;
+        case CITY:
+            //model_view *= Translate(0, 3, 0); //change coordinate position before creating new scene
+            newWorldSceneSetup();
+            break;
+        default:
+            break;
     }
-    else{
-        model_view *= Translate(0, 10, 0); //change coordinate position before creating new scene
-        newWorldSceneSetup();
-    }
-    
-    
-
+    triggerEvent();
     
     glutSwapBuffers();
 }

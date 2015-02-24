@@ -38,6 +38,7 @@
 		A9279F231A9C140C003B327A /* texture_pavement.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_pavement.tga; sourceTree = "<group>"; };
 		A9279F241A9C140C003B327A /* texture_road.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_road.tga; sourceTree = "<group>"; };
 		A9279F261A9C2014003B327A /* texture_building_bricks.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_building_bricks.tga; sourceTree = "<group>"; };
+		A9279F271A9C2D2E003B327A /* texture_balcony.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_balcony.tga; sourceTree = "<group>"; };
 		A97BC6301A97D6F50076E1FA /* assignment_2_baixiao */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = assignment_2_baixiao; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97BC63C1A97D7A80076E1FA /* challenge.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = challenge.tga; sourceTree = "<group>"; };
 		A97BC63D1A97D7A80076E1FA /* earth.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = earth.tga; sourceTree = "<group>"; };
@@ -136,6 +137,7 @@
 				A9279F231A9C140C003B327A /* texture_pavement.tga */,
 				A9279F241A9C140C003B327A /* texture_road.tga */,
 				A9279F261A9C2014003B327A /* texture_building_bricks.tga */,
+				A9279F271A9C2D2E003B327A /* texture_balcony.tga */,
 			);
 			name = texture;
 			sourceTree = "<group>";
