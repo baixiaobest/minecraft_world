@@ -31,6 +31,13 @@
 		A9279F1C1A9AC040003B327A /* texture_mob_body.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_mob_body.tga; sourceTree = "<group>"; };
 		A9279F1D1A9AD9C6003B327A /* texture_mob_leg.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_mob_leg.tga; sourceTree = "<group>"; };
 		A9279F1E1A9ADD65003B327A /* texture_mob_arm.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_mob_arm.tga; sourceTree = "<group>"; };
+		A9279F1F1A9BE24E003B327A /* texture_trunk.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_trunk.tga; sourceTree = "<group>"; };
+		A9279F201A9BE292003B327A /* texture_tree_leaves.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_tree_leaves.tga; sourceTree = "<group>"; };
+		A9279F211A9BFB75003B327A /* texture_magic_door.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_magic_door.tga; sourceTree = "<group>"; };
+		A9279F221A9C140C003B327A /* road_paint.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = road_paint.tga; sourceTree = "<group>"; };
+		A9279F231A9C140C003B327A /* texture_pavement.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_pavement.tga; sourceTree = "<group>"; };
+		A9279F241A9C140C003B327A /* texture_road.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_road.tga; sourceTree = "<group>"; };
+		A9279F261A9C2014003B327A /* texture_building_bricks.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_building_bricks.tga; sourceTree = "<group>"; };
 		A97BC6301A97D6F50076E1FA /* assignment_2_baixiao */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = assignment_2_baixiao; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97BC63C1A97D7A80076E1FA /* challenge.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = challenge.tga; sourceTree = "<group>"; };
 		A97BC63D1A97D7A80076E1FA /* earth.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = earth.tga; sourceTree = "<group>"; };
@@ -122,6 +129,13 @@
 				A9279F1C1A9AC040003B327A /* texture_mob_body.tga */,
 				A9279F1D1A9AD9C6003B327A /* texture_mob_leg.tga */,
 				A9279F1E1A9ADD65003B327A /* texture_mob_arm.tga */,
+				A9279F1F1A9BE24E003B327A /* texture_trunk.tga */,
+				A9279F201A9BE292003B327A /* texture_tree_leaves.tga */,
+				A9279F211A9BFB75003B327A /* texture_magic_door.tga */,
+				A9279F221A9C140C003B327A /* road_paint.tga */,
+				A9279F231A9C140C003B327A /* texture_pavement.tga */,
+				A9279F241A9C140C003B327A /* texture_road.tga */,
+				A9279F261A9C2014003B327A /* texture_building_bricks.tga */,
 			);
 			name = texture;
 			sourceTree = "<group>";

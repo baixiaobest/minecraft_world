@@ -16,7 +16,7 @@ bool animationJustStarted = false;
 
 const unsigned X = 0, Y = 1, Z = 2;
 
-vec4 eye( 10, 10, 0, 1), ref( 0, 0, 0, 1 ), up( 0, 1, 0, 0 );	// The eye point and look-at point.
+vec4 eye( 10, 5, 0, 1), ref( 0, 0, 0, 1 ), up( 0, 1, 0, 0 );	// The eye point and look-at point.
 
 mat4	orientation, model_view;
 ShapeData cubeData, sphereData, coneData, cylData, customizedCubeData, pyramidData;				// Structs that hold the Vertex Array Object index and number of vertices of each shape.
@@ -37,6 +37,13 @@ TgaImage mobHeadImage("texture.tga");
 TgaImage mobBodyImage("texture_mob_body.tga");
 TgaImage mobArmImage("texture_mob_arm.tga");
 TgaImage mobLegImage("texture_mob_leg.tga");
+TgaImage treeTrunkImage("texture_trunk.tga");
+TgaImage treeLeavesImage("texture_tree_leaves.tga");
+TgaImage magicDoorImage("texture_magic_door.tga");
+TgaImage roadPaintImage("road_paint.tga");
+TgaImage pavementImage("texture_pavement.tga");
+TgaImage roadImage("texture_road.tga");
+TgaImage buildingBricksImage("texture_building_bricks.tga");
 int currentCustomizedImageTexture = NONE;
 int currentCubeImageTexture = NONE;
 
@@ -48,6 +55,9 @@ enum charBehavior{NO_BEHAVIOR, FORWARD, BACKWARD, LEFT, RIGHT, TURN_LEFT, TURN_R
 int currentBehavior = NO_BEHAVIOR;
 int behaviorCount;
 int lastBehavior = NO_BEHAVIOR;
+
+int frameCount = 0;
+double lastTime = 0;
 
 void init()
 {
@@ -203,6 +213,17 @@ void idleCallBack(void)
     AnimatedTime += TIME - (TIME >= lastAnimatedTime ? lastAnimatedTime : TIME);
     lastAnimatedTime = TIME;
     
+    if (lastTime == 0) {
+        lastTime = TIME;
+    }
+    if (TIME - lastTime >= 1) {
+        printf("frame rate: %d\n", (int)(frameCount/(TIME-lastTime)));
+        frameCount = 0;
+        lastTime = TIME;
+    }else{
+        frameCount++;
+    }
+    
     glutPostRedisplay() ;
 }
 
@@ -316,64 +337,6 @@ void drawAxes(int selected)
     //texture_cube = tmp;
 }
 
-void drawGround(){
-	mvstack.push(model_view);
-    set_color( .0, .8, .0 );
-    model_view *= Translate	(0, -10, 0);									drawAxes(basis_id++);
-    model_view *= Scale		(100, 1, 100);									drawAxes(basis_id++);
-    drawCube();
-	model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
-}
-
-void drawShapes()
-{
-	mvstack.push(model_view);
-
-    model_view *= Translate	( 0, 3, 0 );									drawAxes(basis_id++);
-    model_view *= Scale		( 3, 3, 3 );									drawAxes(basis_id++);
-    set_color( .8, .0, .8 );
-    drawCube();
-
-    model_view *= Scale		( 1/3.0f, 1/3.0f, 1/3.0f );						drawAxes(basis_id++);
-    model_view *= Translate	( 0, 3, 0 );									drawAxes(basis_id++);
-    set_color( 0, 1, 0 );
-    drawCone();
-
-    model_view *= Translate	( 0, -9, 0 );									drawAxes(basis_id++);
-    set_color( 1, 1, 0 );
-    drawCylinder();
-
-	model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
-	
-    model_view *= Scale		( 1/3.0f, 1/3.0f, 1/3.0f );						drawAxes(basis_id++);
-
-	drawGround();
-}
-
-void drawPlanets()
-{
-    set_color( .8, .0, .0 );	//model sun
-    mvstack.push(model_view);
-    model_view *= Scale(3);													drawAxes(basis_id++);
-    drawSphere();
-    model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
-    
-    set_color( .0, .0, .8 );	//model earth
-    model_view *= RotateY	( 10*TIME );									drawAxes(basis_id++);
-    model_view *= Translate	( 15, 5*sin( 30*DegreesToRadians*TIME ), 0 );	drawAxes(basis_id++);
-    mvstack.push(model_view);
-    model_view *= RotateY( 300*TIME );										drawAxes(basis_id++);
-    drawCube();
-    model_view = mvstack.top(); mvstack.pop();								drawAxes(basis_id++);
-    
-    set_color( .8, .0, .8 );	//model moon
-    model_view *= RotateY	( 30*TIME );									drawAxes(basis_id++);
-    model_view *= Translate	( 2, 0, 0);										drawAxes(basis_id++);
-    model_view *= Scale(0.2);												drawAxes(basis_id++);
-    drawCylinder();
-	
-}
-
 /*********************************************************
  Deprecated!!!
  setTextureImage()
@@ -420,9 +383,34 @@ void setTextureImage2(GLuint &texture, TgaImage& newImg)
 }
 
 /*********************************************************
+ generateTerrain()
+ DOES: draw the given terrain
+ *********************************************************/
+void generateTerrain(bool customized, int width, int height)
+{
+    mvstack.push(model_view);
+    for (int i=0; i<width; i++) {
+        mvstack.push(model_view);
+        for (int k=0; k<height; k++) {
+            if (customized) {
+                drawCustomizedCube();
+            }else{
+                drawCube();
+            }
+            model_view *= Translate(0, 1, 0);
+        }
+        model_view = mvstack.top(); mvstack.pop();
+        model_view *= Translate(1, 0, 0);
+    }
+    model_view = mvstack.top(); mvstack.pop();
+}
+
+
+/*********************************************************
  mapTerrain()
  DOES: draw the given terrain
  *********************************************************/
+void mapObject(int layer[][OBJECT_WIDTH], int height);
 
 void mapTerrain(int layer[][TERRAIN_SIZE])
 {
@@ -454,6 +442,38 @@ void mapTerrain(int layer[][TERRAIN_SIZE])
                 }
                 drawCustomizedCube();
             }
+            if (layer[i][k] == BUILDING_BRICK) {
+                if (currentCubeImageTexture != BUILDING_BRICK) {
+                    setTextureImage2(texture_cube, buildingBricksImage);
+                    currentCubeImageTexture = BUILDING_BRICK;
+                }
+                drawCube();
+            }
+            if (layer[i][k] == ROAD) {
+                if (currentCubeImageTexture != ROAD) {
+                    setTextureImage2(texture_cube, roadImage);
+                    currentCubeImageTexture = ROAD;
+                }
+                drawCube();
+            }
+            if (layer[i][k] == TREE) {
+                mvstack.push(model_view);
+                mapObject(treeL1, 5);
+                model_view *= Translate(0, 0, 1);
+                mapObject(treeL1, 5);
+                model_view *= Translate(0, 0, 1);
+                mapObject(treeL1, 5);
+                model_view *= Translate(0, 0, 1);
+                mapObject(treeL2, 5);
+                model_view *= Translate(0, 0, 1);
+                mapObject(treeL2, 5);
+                model_view *= Translate(0, 0, 1);
+                mapObject(treeL3, 5);
+                model_view *= Translate(0, 0, 1);
+                mapObject(treeL4, 5);
+                model_view = mvstack.top(); mvstack.pop();
+
+            }
             model_view *= Translate(1, 0, 0);
         }
         model_view = mvstack.top(); mvstack.pop();
@@ -481,8 +501,8 @@ void mapObject(int layer[][OBJECT_WIDTH], int height)
                 }
                 drawCustomizedCube();
             }
-            if (layer[i][k] == DOOR) {
-                if (currentCubeImageTexture != DOOR) {
+            else if (layer[i][k] == DOOR) {
+                if (currentCustomizedImageTexture != DOOR) {
                     setTextureImage2(texture_customized_cube, doorImage);
                     currentCustomizedImageTexture = DOOR;
                 }
@@ -492,7 +512,7 @@ void mapObject(int layer[][OBJECT_WIDTH], int height)
                 drawCustomizedCube();
                 model_view = mvstack.top(); mvstack.pop();
             }
-            if (layer[i][k] == STOVE) {
+            else if (layer[i][k] == STOVE) {
                 if (currentCustomizedImageTexture != STOVE) {
                     setTextureImage2(texture_customized_cube, stoveImage);
                     currentCustomizedImageTexture = STOVE;
@@ -501,6 +521,20 @@ void mapObject(int layer[][OBJECT_WIDTH], int height)
                 model_view *= RotateZ(180);
                 drawCustomizedCube();
                 model_view = mvstack.top(); mvstack.pop();
+            }
+            else if (layer[i][k] == TREE_TRUNK) {
+                if (currentCustomizedImageTexture != TREE_TRUNK) {
+                    setTextureImage2(texture_customized_cube, treeTrunkImage);
+                    currentCustomizedImageTexture = TREE_TRUNK;
+                }
+                drawCustomizedCube();
+            }
+            else if (layer[i][k] == LEAVES){
+                if (currentCubeImageTexture != LEAVES) {
+                    setTextureImage2(texture_cube, treeLeavesImage);
+                    currentCubeImageTexture = LEAVES;
+                }
+                drawCube();
             }
             model_view *= Translate(1, 0, 0);
         }
@@ -513,11 +547,12 @@ void mapObject(int layer[][OBJECT_WIDTH], int height)
 /*********************************************************
  sceneSetup() function
  *********************************************************/
+double magicDoorPosition[2] = {2,17.5};
+int magicDoorApearTime = 1;
 void sceneSetup()
 {
     
     mvstack.push(model_view);
-    //model_view *= Translate(-10, -10, 0);
     mapTerrain(layer1);
     model_view *= Translate(0, 0, 1);
     mapTerrain(layer2);
@@ -531,18 +566,31 @@ void sceneSetup()
     mapTerrain(layer5);
     model_view = mvstack.top(); mvstack.pop();
     
-    model_view *= Translate(7, 6, 1);                  drawAxes(basis_id++);
+    mvstack.push(model_view);
+    model_view *= Translate(7, 6, 1);
     mapObject(house_L1, HOUSE_HEIGHT);
     model_view *= Translate(0, 0, 1);
     mapObject(house_L2, HOUSE_HEIGHT);
-    model_view *= Translate(0, 0, 1);                    drawAxes(basis_id++);
+    model_view *= Translate(0, 0, 1);
     mapObject(house_L3, HOUSE_HEIGHT);
     
-    model_view *= Translate(4, 2, 0);                    drawAxes(basis_id++);
+    model_view *= Translate(4, 2, 0);
     mvstack.push(model_view);
     model_view *= Scale(5, 5, 5);
     drawPyramid();
-    model_view = mvstack.top(); mvstack.pop();           drawAxes(basis_id++);
+    model_view = mvstack.top(); mvstack.pop();
+    model_view = mvstack.top(); mvstack.pop();
+    
+    if (AnimatedTime > magicDoorApearTime){
+        mvstack.push(model_view);
+        model_view *= Translate(magicDoorPosition[0], magicDoorPosition[1], 1.5);
+        model_view *= RotateZ(-90);
+        model_view *= Scale(0.1, 1, 2);
+        setTextureImage2(texture_customized_cube, magicDoorImage);
+        drawCustomizedCube();
+        model_view = mvstack.top(); mvstack.pop();
+    }
+    
 }
 
 /*********************************************************
@@ -625,6 +673,8 @@ void createCharacter()
     
     
     model_view = mvstack.top(); mvstack.pop();
+    currentCubeImageTexture = NONE;
+    currentCustomizedImageTexture =NONE;
 }
 
 /*********************************************************
@@ -642,11 +692,11 @@ void behave(int behavior)
             lastBehavior = BACKWARD;
             break;
         case LEFT:
-            characterTransform *= Translate(0, 0.2, 0);
+            characterTransform *= Translate(0, 0.15, 0);
             lastBehavior = LEFT;
             break;
         case RIGHT:
-            characterTransform *= Translate(0, -0.2, 0);
+            characterTransform *= Translate(0, -0.15, 0);
             lastBehavior = RIGHT;
             break;
         case TURN_LEFT:
@@ -678,6 +728,43 @@ void transformCharacter()
 }
 
 /*********************************************************
+ newWorldSceneSetup() function
+ *********************************************************/
+bool entryToNewWorld = false;
+void newWorldSceneSetup()
+{
+    //draw pavement
+    setTextureImage2(texture_cube, pavementImage);drawAxes(basis_id++);
+    generateTerrain(false, 80, 20);
+    //draw road
+    mvstack.push(model_view);
+    model_view *= Translate(0, 20, 0);
+    setTextureImage2(texture_cube, roadImage);
+    generateTerrain(false, 80, 4);
+    model_view = mvstack.top(); mvstack.pop();
+    //draw skyscraper
+    mvstack.push(model_view);
+    model_view *= Translate(0, 0, 1);
+    model_view *= Translate(20, 3, 0);
+    for (int i=0; i<4; i++) {
+        mapTerrain(building_L1);
+        mapTerrain(building_L1_M2);
+        model_view *= Translate(0, 0, 1);
+    }
+    for (int k=0; k<10; k++) {
+        mapTerrain(building_L2);
+        model_view *= Translate(0, 0, 1);
+        mapTerrain(building_L1);
+        model_view *= Translate(0, 0, 1);
+        mapTerrain(building_L1);
+        model_view *= Translate(0, 0, 1);
+    }
+    mapTerrain(building_L2);
+    model_view = mvstack.top(); mvstack.pop();
+    
+}
+
+/*********************************************************
  display() function
  *********************************************************/
 vec4 unrotatedPoint = eye;
@@ -694,7 +781,7 @@ void display(void)
     model_view *= Scale(zoom);
     
     float rotationBeginTime = 0;
-    float timeToRotate = 10;
+    float timeToRotate = 5;
     float rotationSceneTime = AnimatedTime - rotationBeginTime;
     if (rotationSceneTime > 0 && rotationSceneTime < timeToRotate) {
         //eye = RotateY(360/timeToRotate*rotationSceneTime)*unrotatedPoint;
@@ -708,21 +795,31 @@ void display(void)
     
     transformCharacter();                                       //define transform matrix for character
     model_view *= inverse(characterTransform);                  //camera tracking of character
-    characterPosition = model_view;     drawAxes(basis_id++);
+    characterPosition = model_view;
     
     //initial setup of position for character
     if (!charPosInit) {
         charPosInit = true;
-        characterTransform = Translate(5, 5, 0.2+totalHeight);
-        characterPosition *= Translate(5, 5, 0.2+totalHeight);
+        characterTransform = Translate(5, 7, 0.2+totalHeight);
+        characterTransform *= RotateZ(180);
+        characterPosition *= Translate(5, 7, 0.2+totalHeight);
+        characterPosition *= RotateZ(180);
     }
     
     
-
-    //model_view *= Translate(-4, -3, -0.2-totalHeight);
-    //model_view *= RotateZ(180);                             drawAxes(basis_id++);
-    createCharacter();                  drawAxes(basis_id++);
-    sceneSetup();
+    createCharacter();
+    printf("x: %f y: %f\n",characterTransform[0][3], characterTransform[1][3]);
+    if (characterTransform[1][3] <=1+magicDoorPosition[1] && characterTransform[1][3] >= magicDoorPosition[1]
+    &&  characterTransform[0][3] <= magicDoorPosition[0]+0.5 && characterTransform[0][3] >= magicDoorPosition[0]-0.5 && (AnimatedTime > magicDoorApearTime) ) {
+        entryToNewWorld = true;
+    }
+    if (!entryToNewWorld) {
+        sceneSetup();
+    }
+    else{
+        model_view *= Translate(0, 10, 0); //change coordinate position before creating new scene
+        newWorldSceneSetup();
+    }
     
     
 
