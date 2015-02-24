@@ -2,6 +2,7 @@
 #include "../CS174a template/Utilities.h"
 #include "../CS174a template/Shapes.h"
 #include "terrainMap.h"
+#include "vehicle.h"
 
 std::stack<mat4> mvstack;
 
@@ -45,6 +46,10 @@ TgaImage pavementImage("texture_pavement.tga");
 TgaImage roadImage("texture_road.tga");
 TgaImage buildingBricksImage("texture_building_bricks.tga");
 TgaImage balconyImage("texture_balcony.tga");
+TgaImage studioImage("texture_studio.tga");
+TgaImage studioLogoImage("texture_minecraft_studio.tga");
+TgaImage vehicleBodyImage("texture_vehicle_body.tga");
+TgaImage vehicleWheelImage("texture_wheel.tga");
 int currentCustomizedImageTexture = NONE;
 int currentCubeImageTexture = NONE;
 
@@ -55,6 +60,7 @@ bool charPosInit = false; //if character initial position is setup
 enum charBehavior{NO_BEHAVIOR, FORWARD, BACKWARD, LEFT, RIGHT, TURN_LEFT, TURN_RIGHT};
 enum scene{HOME, CITY, CAVE};
 int currentScene = HOME;
+int lastScene = HOME;
 int currentBehavior = NO_BEHAVIOR;
 int behaviorCount;
 int lastBehavior = NO_BEHAVIOR;
@@ -389,16 +395,26 @@ void setTextureImage2(GLuint &texture, TgaImage& newImg)
  generateTerrain()
  DOES: draw the given terrain
  *********************************************************/
-void generateTerrain(bool customized, int width, int height)
+void generateTerrain(bool customized, int width, int height, bool hollow = false)
 {
     mvstack.push(model_view);
     for (int i=0; i<width; i++) {
         mvstack.push(model_view);
         for (int k=0; k<height; k++) {
-            if (customized) {
-                drawCustomizedCube();
-            }else{
-                drawCube();
+            if (!hollow || i==0 || i==width-1){
+                if (customized) {
+                    drawCustomizedCube();
+                }else{
+                    drawCube();
+                }
+            } else{
+                if (k==0 || k==height-1) {
+                    if (customized) {
+                        drawCustomizedCube();
+                    }else{
+                        drawCube();
+                    }
+                }
             }
             model_view *= Translate(0, 1, 0);
         }
@@ -465,6 +481,9 @@ void mapTerrain(int layer[][TERRAIN_SIZE])
                     currentCustomizedImageTexture = BALCONY;
                 }
                 drawCustomizedCube();
+            }
+            if (layer[i][k] == CUBE) {
+                drawCube();
             }
             if (layer[i][k] == TREE) {
                 mvstack.push(model_view);
@@ -544,6 +563,9 @@ void mapObject(int layer[][OBJECT_WIDTH], int height)
                     setTextureImage2(texture_cube, treeLeavesImage);
                     currentCubeImageTexture = LEAVES;
                 }
+                drawCube();
+            }
+            else if (layer[i][k] == CUBE) {
                 drawCube();
             }
             model_view *= Translate(1, 0, 0);
@@ -741,9 +763,11 @@ void transformCharacter()
 /*********************************************************
  newWorldSceneSetup() function
  *********************************************************/
-const double buildingPos[2] = {20, 3};
+const double buildingPos[2] = {60, 3};
 const double stairWayPos[2] = {buildingPos[0]+0.5, buildingPos[1]+9.5};
 const int cityLength = 80;
+const int studioWidth = 40;
+const int studioHeight = 14;
 void newWorldSceneSetup()
 {
     //draw pavement
@@ -771,7 +795,56 @@ void newWorldSceneSetup()
     }
     model_view = mvstack.top(); mvstack.pop();
     
+    //drawStudio
+    mvstack.push(model_view);
+    model_view *= Translate(0, 4, 1);
+    setTextureImage2(texture_cube, studioImage);
+    for (int i=0; i<5; i++){
+        generateTerrain(false, studioWidth, studioHeight, true);
+        model_view *= Translate(0, 0, 1);
+    }
+    generateTerrain(false, studioWidth, studioHeight);
+    model_view *= Translate(0, 0, 1);
+    for(int i=studioWidth-4; i>studioWidth/2; i=i-4)
+    {
+        model_view *= Translate(2, 0, 0);
+        generateTerrain(false, i, studioHeight);
+        model_view *= Translate(0, 0, 1);
+    }
+    model_view = mvstack.top(); mvstack.pop();
+    //draw studio logo
+    mvstack.push(model_view);
+    model_view *= Translate(studioWidth/2, studioHeight-0.5+4, 8);
+    model_view *= RotateZ(90);
+    model_view *= Scale(0.1, 8, 5.5);
+    setTextureImage2(texture_customized_cube, studioLogoImage);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
     
+    //draw magic door
+    mvstack.push(model_view);
+    model_view *= Translate(magicDoorPosition[0], magicDoorPosition[1], 1.5);
+    model_view *= RotateZ(-90);
+    model_view *= Scale(0.1, 1, 2);
+    setTextureImage2(texture_customized_cube, magicDoorImage);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
+    
+    //draw vehicle
+    mvstack.push(model_view);
+    model_view *= Translate(10*TIME-(int)(10*TIME)/cityLength*cityLength, 20, 1);                    drawAxes(basis_id++);
+    setTextureImage2(texture_cube, vehicleBodyImage);
+    mapObject(vehicle_L1, VEHICLE_WIDTH);
+    model_view *= Translate(0, 0, 1);
+    mapObject(vehicle_L2, VEHICLE_WIDTH);
+    model_view *= Translate(0, 0, 0.5);
+    model_view *= Scale(1, 1, 0.1);
+    mapObject(vehicle_L3, VEHICLE_WIDTH);
+    model_view *= Scale(1, 1, 10);
+    model_view *= Translate(0, 0, -1.5);
+    setTextureImage2(texture_cube, vehicleWheelImage);
+    mapObject(vehicle_L1_M2, VEHICLE_WIDTH);
+    model_view = mvstack.top(); mvstack.pop();
     
     //draw skyscraper
     mvstack.push(model_view);
@@ -886,7 +959,7 @@ void display(void)
     
     
     createCharacter();
-    printf("x: %f y: %f\n",characterTransform[0][3], characterTransform[1][3]);
+    //printf("x: %f y: %f\n",characterTransform[0][3], characterTransform[1][3]);
     if (characterTransform[1][3] <=1+magicDoorPosition[1] && characterTransform[1][3] >= magicDoorPosition[1]
     &&  characterTransform[0][3] <= magicDoorPosition[0]+0.5 && characterTransform[0][3] >= magicDoorPosition[0]-0.5 && (AnimatedTime > magicDoorApearTime) ) {
         currentScene = CITY;
@@ -902,8 +975,12 @@ void display(void)
         default:
             break;
     }
+    if (lastScene == HOME && currentScene == CITY) {
+        orientation *= RotateY(180);
+    }
     triggerEvent();
     
+    lastScene = currentScene;
     glutSwapBuffers();
 }
 

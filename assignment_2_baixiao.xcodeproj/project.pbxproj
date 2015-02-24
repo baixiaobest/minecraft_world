@@ -39,6 +39,12 @@
 		A9279F241A9C140C003B327A /* texture_road.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_road.tga; sourceTree = "<group>"; };
 		A9279F261A9C2014003B327A /* texture_building_bricks.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_building_bricks.tga; sourceTree = "<group>"; };
 		A9279F271A9C2D2E003B327A /* texture_balcony.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_balcony.tga; sourceTree = "<group>"; };
+		A928AA3B1A9C52B200BB53C4 /* texture_studio.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_studio.tga; sourceTree = "<group>"; };
+		A928AA3C1A9C624900BB53C4 /* texture_minecraft_studio.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_minecraft_studio.tga; sourceTree = "<group>"; };
+		A928AA3D1A9C62A600BB53C4 /* texture_studio.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_studio.tga; sourceTree = "<group>"; };
+		A928AA3F1A9C6B0C00BB53C4 /* vehicle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vehicle.h; sourceTree = "<group>"; };
+		A928AA401A9C6F1A00BB53C4 /* texture_vehicle_body.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_vehicle_body.tga; sourceTree = "<group>"; };
+		A928AA411A9C6F1A00BB53C4 /* texture_wheel.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_wheel.tga; sourceTree = "<group>"; };
 		A97BC6301A97D6F50076E1FA /* assignment_2_baixiao */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = assignment_2_baixiao; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97BC63C1A97D7A80076E1FA /* challenge.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = challenge.tga; sourceTree = "<group>"; };
 		A97BC63D1A97D7A80076E1FA /* earth.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = earth.tga; sourceTree = "<group>"; };
@@ -99,6 +105,7 @@
 				A97BC6401A97D7A80076E1FA /* vshader.glsl */,
 				A97BC64D1A97EB540076E1FA /* anim.cpp */,
 				A9C70F921A9A593600171F50 /* terrainMap.h */,
+				A928AA3F1A9C6B0C00BB53C4 /* vehicle.h */,
 				A9C70F911A9A571D00171F50 /* texture */,
 			);
 			path = "my code";
@@ -117,6 +124,7 @@
 		A9C70F911A9A571D00171F50 /* texture */ = {
 			isa = PBXGroup;
 			children = (
+				A928AA3B1A9C52B200BB53C4 /* texture_studio.tga */,
 				A97BC63C1A97D7A80076E1FA /* challenge.tga */,
 				A97BC63D1A97D7A80076E1FA /* earth.tga */,
 				A97BC6501A99684A0076E1FA /* texture.tga */,
@@ -134,10 +142,14 @@
 				A9279F201A9BE292003B327A /* texture_tree_leaves.tga */,
 				A9279F211A9BFB75003B327A /* texture_magic_door.tga */,
 				A9279F221A9C140C003B327A /* road_paint.tga */,
+				A928AA401A9C6F1A00BB53C4 /* texture_vehicle_body.tga */,
+				A928AA411A9C6F1A00BB53C4 /* texture_wheel.tga */,
 				A9279F231A9C140C003B327A /* texture_pavement.tga */,
 				A9279F241A9C140C003B327A /* texture_road.tga */,
 				A9279F261A9C2014003B327A /* texture_building_bricks.tga */,
 				A9279F271A9C2D2E003B327A /* texture_balcony.tga */,
+				A928AA3C1A9C624900BB53C4 /* texture_minecraft_studio.tga */,
+				A928AA3D1A9C62A600BB53C4 /* texture_studio.tga */,
 			);
 			name = texture;
 			sourceTree = "<group>";

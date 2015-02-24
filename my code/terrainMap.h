@@ -12,7 +12,7 @@
 std::stack<mat4> myStack;
 
 //              0     1     2      3        4     5     6          7          8     9     10    11       12         13
-enum layerType{NONE,GRASS,WATER,NONE_ROW, ROCK, BRICK, TREE, BUILDING_BRICK, ROAD,SLOT4, DOOR, STOVE, TREE_TRUNK, LEAVES, BALCONY};
+enum layerType{NONE,GRASS,WATER,NONE_ROW, ROCK, BRICK, TREE, BUILDING_BRICK, ROAD, CUBE, DOOR, STOVE, TREE_TRUNK, LEAVES, BALCONY, VEHICLE };
 //   14
 
 
@@ -380,6 +380,35 @@ int treeL4[TREE_HEIGHT][OBJECT_WIDTH]{
     {3, 0, 0, 0, 0, 0, 0, 0},
     {3, 0, 0, 0, 0, 0, 0, 0}
 };
+
+//mapping for body
+const int VEHICLE_WIDTH = 4;
+int vehicle_L1[VEHICLE_WIDTH][OBJECT_WIDTH]{
+    {9, 0, 9, 9, 0, 9, 0, 0},
+    {9, 0, 0, 0, 9, 9, 0, 0},
+    {9, 0, 9, 9, 0, 9, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+};
+//mapping for wheels
+int vehicle_L1_M2[VEHICLE_WIDTH][OBJECT_WIDTH]{
+    {0, 9, 0, 0, 9, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 9, 0, 0, 9, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+};
+int vehicle_L2[VEHICLE_WIDTH][OBJECT_WIDTH]{
+    {9, 0, 0, 9, 0, 0, 0, 0},
+    {9, 0, 0, 0, 0, 0, 0, 0},
+    {9, 0, 0, 9, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+};
+int vehicle_L3[VEHICLE_WIDTH][OBJECT_WIDTH]{
+    {9, 9, 9, 9, 0, 0, 0, 0},
+    {9, 9, 9, 9, 0, 0, 0, 0},
+    {9, 9, 9, 9, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0},
+};
+
 
 #define assignment_2_baixiao_terrainMap_h
 
