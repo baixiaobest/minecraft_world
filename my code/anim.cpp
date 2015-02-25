@@ -54,17 +54,21 @@ TgaImage woodImage("texture_wood.tga");
 TgaImage trunkImage("texture_trunk_surface.tga");
 TgaImage woodenDoorImage("texture_wooden_door.tga");
 TgaImage motelLogoImage("texture_motel_logo.tga");
+TgaImage bedImage("texture_bed.tga");
 int currentCustomizedImageTexture = NONE;
 int currentCubeImageTexture = NONE;
 
 mat4 characterTransform; //transform done to character
 mat4 characterPosition;  //position of character
+mat4 firstPersonRotation;
 bool charPosInit = false; //if character initial position is setup
 
 enum charBehavior{NO_BEHAVIOR, FORWARD, BACKWARD, LEFT, RIGHT, TURN_LEFT, TURN_RIGHT, RUN};
-enum scene{HOME, CITY, CAVE};
+enum scene{HOME, CITY, TUNNEL};
+enum viewMode{THIRD_PERSON, FIRST_PERSON};
+
+int currentViewMode = THIRD_PERSON;
 int currentScene = HOME;
-int lastScene = HOME;
 int currentBehavior = NO_BEHAVIOR;
 int behaviorCount;
 int lastBehavior = NO_BEHAVIOR;
@@ -201,8 +205,13 @@ void myMotionCallBack(int x, int y)
 	 
     if( mouseButton == GLUT_LEFT_BUTTON )
     {
-	   orientation = RotateZ( 10 * (arcball_coords.y - anchor.y) ) * orientation;
-	   orientation = RotateY(  10 * (arcball_coords.x - anchor.x) ) * orientation;
+        
+        orientation = RotateZ( 10 * (arcball_coords.y - anchor.y) ) * orientation;
+        if (currentViewMode == THIRD_PERSON)
+            orientation = RotateY(  10 * (arcball_coords.x - anchor.x) ) * orientation;
+        else{
+            characterTransform *= RotateZ(-6 * (arcball_coords.x - anchor.x));
+        }
     }
 	
 	if( mouseButton == GLUT_RIGHT_BUTTON )
@@ -409,7 +418,7 @@ void setTextureImage2(GLuint &texture, TgaImage& newImg)
  generateTerrain()
  DOES: draw the given terrain
  *********************************************************/
-void generateTerrain(bool customized, int width, int height, bool hollow = false)
+void generateTerrain(bool customized, int width, int height, bool hollow = false, int mappingMethod=X_Y)
 {
     mvstack.push(model_view);
     for (int i=0; i<width; i++) {
@@ -430,7 +439,10 @@ void generateTerrain(bool customized, int width, int height, bool hollow = false
                     }
                 }
             }
-            model_view *= Translate(0, 1, 0);
+            if (mappingMethod == X_Y)
+                model_view *= Translate(0, 1, 0);
+            else if (mappingMethod == X_Z)
+                model_view *= Translate(0, 0, 1);
         }
         model_view = mvstack.top(); mvstack.pop();
         model_view *= Translate(1, 0, 0);
@@ -637,7 +649,8 @@ void sceneSetup()
         model_view *= Scale(0.1, 1, 2);
         setTextureImage2(texture_customized_cube, magicDoorImage);
         drawCustomizedCube();
-        model_view = mvstack.top(); mvstack.pop();
+        model_view = mvstack.top();
+        mvstack.pop();
     }
     
 }
@@ -770,7 +783,7 @@ void behave(int behavior)
 void transformCharacter()
 {
     if (currentBehavior!=NONE) {
-        behaviorCount = 5;
+        behaviorCount = 8;
         behave(currentBehavior);
         currentBehavior = NONE;
     }
@@ -829,6 +842,45 @@ void drawVehicle(int speed, int offset=0)
     model_view *= Translate(0, -3, 0);
     model_view *= Scale(0.4, 0.3, 0.4);
     drawCube();
+    model_view = mvstack.top(); mvstack.pop();
+}
+
+void drawMotel()
+{
+    //draw motel
+    mvstack.push(model_view);
+    //model_view *= Translate(motelPos[0], motelPos[1], 1);
+    for (int k=0; k<2; k++){
+        //draw doors
+        mvstack.push(model_view);
+        setTextureImage2(texture_customized_cube, woodenDoorImage);
+        model_view *= Translate(0, 0, 0.5);
+        for (int i=0; i<4; i++) {
+            model_view *= Translate(1, 0, 0);
+            mvstack.push(model_view);
+            model_view *= Scale(1, 0.1, 2);
+            drawCustomizedCube();
+            model_view = mvstack.top(); mvstack.pop();
+            model_view *= Translate(4, 0, 0);
+        }
+        model_view = mvstack.top(); mvstack.pop();
+        
+        setTextureImage2(texture_cube, trunkImage);
+        mapTerrain(MOTEL_V_FRONT,X_Z);
+        for (int i=0; i<3; i++) {
+            mapTerrain(MOTEL_L1);
+            model_view *= Translate(0, 0, 1);
+        }
+        mvstack.push(model_view);
+        model_view *= Translate(-1, -2, 0);
+        setTextureImage2(texture_cube, woodImage);
+        generateTerrain(false, 22, 9);
+        model_view = mvstack.top(); mvstack.pop();
+        model_view *= Translate(0, 0, 1);
+    }
+    model_view *= Translate(0, -2, 0);
+    setTextureImage2(texture_cube, motelLogoImage);
+    mapTerrain(MOTEL_V_LOGO, X_Z);
     model_view = mvstack.top(); mvstack.pop();
 }
 
@@ -918,36 +970,7 @@ void newWorldSceneSetup()
     //draw motel
     mvstack.push(model_view);
     model_view *= Translate(motelPos[0], motelPos[1], 1);
-    for (int k=0; k<2; k++){
-        //draw doors
-        mvstack.push(model_view);
-        setTextureImage2(texture_customized_cube, woodenDoorImage);
-        model_view *= Translate(0, 0, 0.5);
-        for (int i=0; i<4; i++) {
-            model_view *= Translate(1, 0, 0);
-            mvstack.push(model_view);
-            model_view *= Scale(1, 0.1, 2);
-            drawCustomizedCube();
-            model_view = mvstack.top(); mvstack.pop();
-            model_view *= Translate(4, 0, 0);
-        }
-        model_view = mvstack.top(); mvstack.pop();
-        
-        setTextureImage2(texture_cube, trunkImage);
-        mapTerrain(MOTEL_V_FRONT,X_Z);
-        for (int i=0; i<3; i++) {
-            mapTerrain(MOTEL_L1);
-            model_view *= Translate(0, 0, 1);
-        }
-        mvstack.push(model_view);
-        model_view *= Translate(-1, -2, 0);
-        setTextureImage2(texture_cube, woodImage);
-        generateTerrain(false, 22, 9);
-        model_view = mvstack.top(); mvstack.pop();
-        model_view *= Translate(0, 0, 1);
-    }
-    setTextureImage2(texture_cube, motelLogoImage);
-    mapTerrain(MOTEL_V_LOGO, X_Z);
+    drawMotel();
     model_view = mvstack.top(); mvstack.pop();
     
     //draw skyscraper
@@ -1011,27 +1034,69 @@ void newWorldSceneSetup()
     drawCustomizedCube();
     model_view = mvstack.top(); mvstack.pop();
     
+    //mysterious tunnel trigger
+    mvstack.push(model_view);
+    model_view *= Translate(motelPos[0]+4, motelPos[1]+3-0.5, 0.6);
+    model_view *= RotateZ(-90);
+    model_view *= Scale(2, 1, 0.2);
+    setTextureImage2(texture_customized_cube, bedImage);
+    drawCustomizedCube();
+    model_view = mvstack.top(); mvstack.pop();
 }
+
+/*********************************************************
+ tunnelSceneSetup() function
+ *********************************************************/
+const int tunnelLength = 40;
+void tunnelSceneSetup()
+{
+    sceneSetup();
+    
+    //the pavement
+    mvstack.push(model_view);
+    model_view *= Translate(20, 3, 0);
+    setTextureImage2(texture_cube, pavementImage);
+    generateTerrain(false, tunnelLength, 6);
+    
+    //wooden walls
+    mvstack.push(model_view);
+    setTextureImage2(texture_cube, trunkImage);
+    model_view *= Translate(tunnelLength, 0, 1);
+    model_view *= RotateZ(90);
+    generateTerrain(false, 6, 4, false, X_Z);
+    model_view = mvstack.top(); mvstack.pop();
+    generateTerrain(false, tunnelLength, 4, false, X_Z);
+    model_view *= Translate(0, 5, 0);
+    generateTerrain(false, tunnelLength, 4, false, X_Z);
+    model_view *= Translate(0, -5, 4);
+    generateTerrain(false, tunnelLength, 6);
+    model_view = mvstack.top();mvstack.pop();
+}
+
 
 /*********************************************************
  triggerEvent() function
  *********************************************************/
 bool trigger1 = false;
+bool enableMagicDoor = true;
 void triggerEvent()
 {
     if (currentScene == HOME) {
         if (characterTransform[1][3] <=1+magicDoorPosition[1] && characterTransform[1][3] >= magicDoorPosition[1]
-            &&  characterTransform[0][3] <= magicDoorPosition[0]+0.5 && characterTransform[0][3] >= magicDoorPosition[0]-0.5 &&     (AnimatedTime > magicDoorappearTime) ) {
+            &&  characterTransform[0][3] <= magicDoorPosition[0]+0.5 && characterTransform[0][3] >= magicDoorPosition[0]-0.5 &&     (AnimatedTime > magicDoorappearTime) && enableMagicDoor ) {
             currentScene = CITY;
-            orientation *= RotateY(180);
+            enableMagicDoor = false;
+            if (currentViewMode == THIRD_PERSON)
+                orientation *= RotateY(180);
         }
     }
-    if (currentScene == CITY) {
+    else if (currentScene == CITY) {
         if (characterTransform[0][3] >= stairWayPos[0] && characterTransform[0][3]<= stairWayPos[0]+1
             &&  characterTransform[1][3] >= stairWayPos[1]-1 && characterTransform[1][3] <= stairWayPos[1]+1
             && trigger1 == false) {
             characterTransform *= RotateZ(180)*Translate(0, 0, 35);
-            orientation *= RotateY(180);
+            if (currentViewMode == THIRD_PERSON)
+                orientation *= RotateY(180);
             trigger1 = true;
         }
         if (characterTransform[0][3] >= stairWayPos[0]+1 && characterTransform[0][3]<= stairWayPos[0]+3
@@ -1040,8 +1105,22 @@ void triggerEvent()
             characterTransform *= Translate(0, 0, -35);
             characterTransform *= RotateZ(180);
             characterTransform *= Translate(3, 0, 0);
-            orientation *= RotateY(180);
+            if (currentViewMode == THIRD_PERSON)
+                orientation *= RotateY(180);
             trigger1 = false;
+        }
+        if (characterTransform[0][3] >= motelPos[0]+3.5 && characterTransform[0][3] <= motelPos[1]+4.5
+         && characterTransform[1][3] >= motelPos[1]+1.5 && characterTransform[1][3] <= motelPos[1]+3.5) {
+            currentScene = TUNNEL;
+            mat4 inverseMat = inverse(characterTransform);
+            characterTransform *= inverseMat*Translate(0, 0, 0.2+totalHeight);
+            characterTransform *= Translate(tunnelLength+18, 5, 0);
+        }
+    }
+    else if (currentScene == TUNNEL){
+        if (characterTransform[0][3] >= 0 && characterTransform[0][3] <= 20
+            && characterTransform[1][3] >= 0 && characterTransform[1][3] <= 20){
+            currentScene = HOME;
         }
     }
 }
@@ -1057,9 +1136,14 @@ void display(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	set_color( 1, 1, 1 );
 	
-	model_view = LookAt( eye, ref, up );
-
-	model_view *= orientation;
+    if (currentViewMode == THIRD_PERSON) {
+        model_view = LookAt( eye, ref, up );
+    }else{
+        model_view = LookAt(vec4(-0.5,0,0,1), vec4(-2,0,0,1), up);
+    }
+    
+    //if (currentViewMode == THIRD_PERSON)
+        model_view *= orientation;
     model_view *= Scale(zoom);
     
     float rotationBeginTime = 0;
@@ -1100,12 +1184,14 @@ void display(void)
             //model_view *= Translate(0, 3, 0); //change coordinate position before creating new scene
             newWorldSceneSetup();
             break;
+        case TUNNEL:
+            tunnelSceneSetup();
+            break;
         default:
             break;
     }
     triggerEvent();
     
-    lastScene = currentScene;
     glutSwapBuffers();
 }
 
@@ -1165,6 +1251,14 @@ void myKey(unsigned char key, int x, int y)
             break;
         case 'o':
             currentBehavior = TURN_RIGHT;
+            break;
+        case 'v':
+            orientation = mat4();
+            if (currentViewMode == THIRD_PERSON) {
+                currentViewMode = FIRST_PERSON;
+            }else{
+                currentViewMode = THIRD_PERSON;
+            }
             break;
         default:
             currentBehavior = NO_BEHAVIOR;
