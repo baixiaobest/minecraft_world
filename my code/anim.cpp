@@ -50,6 +50,10 @@ TgaImage studioImage("texture_studio.tga");
 TgaImage studioLogoImage("texture_minecraft_studio.tga");
 TgaImage vehicleBodyImage("texture_vehicle_body.tga");
 TgaImage vehicleWheelImage("texture_wheel.tga");
+TgaImage woodImage("texture_wood.tga");
+TgaImage trunkImage("texture_trunk_surface.tga");
+TgaImage woodenDoorImage("texture_wooden_door.tga");
+TgaImage motelLogoImage("texture_motel_logo.tga");
 int currentCustomizedImageTexture = NONE;
 int currentCubeImageTexture = NONE;
 
@@ -57,7 +61,7 @@ mat4 characterTransform; //transform done to character
 mat4 characterPosition;  //position of character
 bool charPosInit = false; //if character initial position is setup
 
-enum charBehavior{NO_BEHAVIOR, FORWARD, BACKWARD, LEFT, RIGHT, TURN_LEFT, TURN_RIGHT};
+enum charBehavior{NO_BEHAVIOR, FORWARD, BACKWARD, LEFT, RIGHT, TURN_LEFT, TURN_RIGHT, RUN};
 enum scene{HOME, CITY, CAVE};
 int currentScene = HOME;
 int lastScene = HOME;
@@ -197,7 +201,7 @@ void myMotionCallBack(int x, int y)
 	 
     if( mouseButton == GLUT_LEFT_BUTTON )
     {
-	   orientation = RotateX( -10 * (arcball_coords.y - anchor.y) ) * orientation;
+	   orientation = RotateZ( 10 * (arcball_coords.y - anchor.y) ) * orientation;
 	   orientation = RotateY(  10 * (arcball_coords.x - anchor.x) ) * orientation;
     }
 	
@@ -253,6 +257,16 @@ void drawCone()	//render a solid cone oriented along the Z axis; bases are of ra
 void drawCube()		// draw a cube with dimensions 1,1,1 centered around the origin.
 {
 	glBindTexture( GL_TEXTURE_2D, texture_cube );
+    glUniform1i( uEnableTex, 1 );
+    glUniformMatrix4fv( uModelView, 1, GL_FALSE, transpose(model_view) );
+    glBindVertexArray( cubeData.vao );
+    glDrawArrays( GL_TRIANGLES, 0, cubeData.numVertices );
+    glUniform1i( uEnableTex, 0 );
+}
+
+void drawPlainCube()		// draw a cube with dimensions 1,1,1 centered around the origin.
+{
+    //glBindTexture( GL_TEXTURE_2D, texture_cube );
     glUniform1i( uEnableTex, 1 );
     glUniformMatrix4fv( uModelView, 1, GL_FALSE, transpose(model_view) );
     glBindVertexArray( cubeData.vao );
@@ -431,7 +445,7 @@ void generateTerrain(bool customized, int width, int height, bool hollow = false
  *********************************************************/
 void mapObject(int layer[][OBJECT_WIDTH], int height);
 
-void mapTerrain(int layer[][TERRAIN_SIZE])
+void mapTerrain(int layer[][TERRAIN_SIZE], int mappingMethod=X_Y)
 {
     mvstack.push(model_view);
     for (int i=0; i<TERRAIN_SIZE; i++) {
@@ -506,7 +520,10 @@ void mapTerrain(int layer[][TERRAIN_SIZE])
             model_view *= Translate(1, 0, 0);
         }
         model_view = mvstack.top(); mvstack.pop();
-        model_view *= Translate(0, 1, 0);
+        if (mappingMethod == X_Y)
+            model_view *= Translate(0, 1, 0);
+        else if (mappingMethod == X_Z)
+            model_view *= Translate(0, 0, 1);
     }
     model_view = mvstack.top(); mvstack.pop();
 }
@@ -580,7 +597,7 @@ void mapObject(int layer[][OBJECT_WIDTH], int height)
  sceneSetup() function
  *********************************************************/
 double magicDoorPosition[2] = {2,17.5};
-int magicDoorApearTime = 1;
+int magicDoorappearTime = 3;
 void sceneSetup()
 {
     
@@ -613,7 +630,7 @@ void sceneSetup()
     model_view = mvstack.top(); mvstack.pop();
     model_view = mvstack.top(); mvstack.pop();
     
-    if (AnimatedTime > magicDoorApearTime){
+    if (AnimatedTime > magicDoorappearTime){
         mvstack.push(model_view);
         model_view *= Translate(magicDoorPosition[0], magicDoorPosition[1], 1.5);
         model_view *= RotateZ(-90);
@@ -719,6 +736,10 @@ void behave(int behavior)
             characterTransform *= Translate(0.21, 0, 0);
             lastBehavior = FORWARD;
             break;
+        case RUN:
+            characterTransform *= Translate(0.5, 0, 0);
+            lastBehavior = FORWARD;
+            break;
         case BACKWARD:
             characterTransform *= Translate(-0.21, 0, 0);
             lastBehavior = BACKWARD;
@@ -768,34 +789,89 @@ const double stairWayPos[2] = {buildingPos[0]+0.5, buildingPos[1]+9.5};
 const int cityLength = 80;
 const int studioWidth = 40;
 const int studioHeight = 14;
+const int pavementWidth = 20;
+const int pavement2Width = 10;
+const int motelPos[2] = {3, pavementWidth+12};
+
+void drawVehicle(int speed, int offset=0)
+{
+    //draw vehicle
+    mvstack.push(model_view);
+    model_view *= Translate(speed*TIME-(int)(speed*TIME+offset)/cityLength*cityLength, 0, 0);
+    setTextureImage2(texture_cube, vehicleBodyImage);
+    mapObject(vehicle_L1, VEHICLE_WIDTH);
+    model_view *= Translate(0, 0, 1);
+    mapObject(vehicle_L2, VEHICLE_WIDTH);
+    model_view *= Translate(0, 0, 0.5);
+    model_view *= Scale(1, 1, 0.1);
+    mapObject(vehicle_L3, VEHICLE_WIDTH);
+    model_view *= Scale(1, 1, 10);
+    model_view *= Translate(0, 0, -1.5);
+    setTextureImage2(texture_cube, vehicleWheelImage);
+    mapObject(vehicle_L1_M2, VEHICLE_WIDTH);        drawAxes(basis_id++);
+    model_view *= Translate(1, -0.5, 0);
+    setTextureImage2(texture_cube, rockImage);
+    
+    mat4 tmp = model_view;
+    model_view *= Scale(0.4, 0.3, 0.4);
+    drawCube();
+    model_view = tmp;
+    model_view *= Translate(0, 3, 0);
+    tmp = model_view;
+    model_view *= Scale(0.4, 0.3, 0.4);
+    drawCube();
+    model_view = tmp;
+    model_view *= Translate(3, 0, 0);
+    tmp = model_view;
+    model_view *= Scale(0.4, 0.3, 0.4);
+    drawCube();
+    model_view = tmp;
+    model_view *= Translate(0, -3, 0);
+    model_view *= Scale(0.4, 0.3, 0.4);
+    drawCube();
+    model_view = mvstack.top(); mvstack.pop();
+}
+
 void newWorldSceneSetup()
 {
     //draw pavement
     setTextureImage2(texture_cube, pavementImage);
-    generateTerrain(false, cityLength, 20);
+    generateTerrain(false, cityLength, pavementWidth);
     //draw road
     mvstack.push(model_view);
-    model_view *= Translate(0, 20, 0);
+    model_view *= Translate(0, pavementWidth, 0);
     setTextureImage2(texture_cube, roadImage);
     currentCubeImageTexture = ROAD;
     generateTerrain(false, cityLength, 4);
     model_view *= Translate(0, 5, 0);
     generateTerrain(false, cityLength, 4);
     model_view *= Translate(0, -1, 0);
+    mvstack.push(model_view);
+    generateTerrain(false, 2, 1);
+    setTextureImage2(texture_cube,roadPaintImage);
     for(int i=0; i<cityLength/10; i++)
     {
-        generateTerrain(false, 2, 1);
-        setTextureImage2(texture_cube,roadPaintImage);
         model_view *= Translate(2, 0, 0);
         generateTerrain(false, 6, 1);
         model_view *= Translate(6, 0, 0);
-        setTextureImage2(texture_cube, roadImage);
+        model_view *= Translate(2, 0, 0);
+    }
+    model_view = mvstack.top(); mvstack.pop();
+    mvstack.push(model_view);
+    setTextureImage2(texture_cube, roadImage);
+    for (int i=0; i<cityLength/10; i++) {
+        generateTerrain(false, 2, 1);
+        model_view *= Translate(8, 0, 0);
         generateTerrain(false, 2, 1);
         model_view *= Translate(2, 0, 0);
     }
     model_view = mvstack.top(); mvstack.pop();
+    model_view *= Translate(0, 5, 0);
+    setTextureImage2(texture_cube, pavementImage);
+    generateTerrain(false, cityLength, pavement2Width);
+    model_view = mvstack.top(); mvstack.pop();
     
-    //drawStudio
+    //draw Studio
     mvstack.push(model_view);
     model_view *= Translate(0, 4, 1);
     setTextureImage2(texture_cube, studioImage);
@@ -830,40 +906,82 @@ void newWorldSceneSetup()
     drawCustomizedCube();
     model_view = mvstack.top(); mvstack.pop();
     
-    //draw vehicle
+    //draw vehicles
     mvstack.push(model_view);
-    model_view *= Translate(10*TIME-(int)(10*TIME)/cityLength*cityLength, 20, 1);                    drawAxes(basis_id++);
-    setTextureImage2(texture_cube, vehicleBodyImage);
-    mapObject(vehicle_L1, VEHICLE_WIDTH);
-    model_view *= Translate(0, 0, 1);
-    mapObject(vehicle_L2, VEHICLE_WIDTH);
-    model_view *= Translate(0, 0, 0.5);
-    model_view *= Scale(1, 1, 0.1);
-    mapObject(vehicle_L3, VEHICLE_WIDTH);
-    model_view *= Scale(1, 1, 10);
-    model_view *= Translate(0, 0, -1.5);
-    setTextureImage2(texture_cube, vehicleWheelImage);
-    mapObject(vehicle_L1_M2, VEHICLE_WIDTH);
+    model_view *= Translate(0, pavementWidth, 1);
+    drawVehicle(10);
+    model_view *= Translate(50, 7, 0);
+    model_view *= RotateZ(180);
+    drawVehicle(15, cityLength-50);
+    model_view = mvstack.top(); mvstack.pop();
+    
+    //draw motel
+    mvstack.push(model_view);
+    model_view *= Translate(motelPos[0], motelPos[1], 1);
+    for (int k=0; k<2; k++){
+        //draw doors
+        mvstack.push(model_view);
+        setTextureImage2(texture_customized_cube, woodenDoorImage);
+        model_view *= Translate(0, 0, 0.5);
+        for (int i=0; i<4; i++) {
+            model_view *= Translate(1, 0, 0);
+            mvstack.push(model_view);
+            model_view *= Scale(1, 0.1, 2);
+            drawCustomizedCube();
+            model_view = mvstack.top(); mvstack.pop();
+            model_view *= Translate(4, 0, 0);
+        }
+        model_view = mvstack.top(); mvstack.pop();
+        
+        setTextureImage2(texture_cube, trunkImage);
+        mapTerrain(MOTEL_V_FRONT,X_Z);
+        for (int i=0; i<3; i++) {
+            mapTerrain(MOTEL_L1);
+            model_view *= Translate(0, 0, 1);
+        }
+        mvstack.push(model_view);
+        model_view *= Translate(-1, -2, 0);
+        setTextureImage2(texture_cube, woodImage);
+        generateTerrain(false, 22, 9);
+        model_view = mvstack.top(); mvstack.pop();
+        model_view *= Translate(0, 0, 1);
+    }
+    setTextureImage2(texture_cube, motelLogoImage);
+    mapTerrain(MOTEL_V_LOGO, X_Z);
     model_view = mvstack.top(); mvstack.pop();
     
     //draw skyscraper
     mvstack.push(model_view);
     model_view *= Translate(0, 0, 1);
     model_view *= Translate(buildingPos[0], buildingPos[1], 0);
+    mat4 tmp = model_view;
     for (int i=0; i<4; i++) {
         mapTerrain(building_L1);
+        model_view *= Translate(0, 0, 1);
+    }
+    model_view = tmp;
+    for (int i=0; i<4; i++) {
         mapTerrain(building_L1_M2);
         model_view *= Translate(0, 0, 1);
     }
+    
+    tmp = model_view;
     for (int k=0; k<10; k++) {
         mapTerrain(building_L2);
-        mapTerrain(building_L2_M2);
+        //mapTerrain(building_L2_M2);
         model_view *= Translate(0, 0, 1);
         mapTerrain(building_L1);
-        mapTerrain(building_L2_M2);
+        //mapTerrain(building_L2_M2);
         model_view *= Translate(0, 0, 1);
         mapTerrain(building_L1);
         model_view *= Translate(0, 0, 1);
+    }
+    model_view = tmp;
+    for (int k=0; k<10; k++) {
+        mapTerrain(building_L2_M2);
+        model_view *= Translate(0, 0, 1);
+        mapTerrain(building_L2_M2);
+        model_view *= Translate(0, 0, 2);
     }
     mapTerrain(building_L2);
     model_view *= Translate(0, 0, 1);
@@ -878,6 +996,8 @@ void newWorldSceneSetup()
     }
     model_view = mvstack.top(); mvstack.pop();
     
+    
+    //draw stairway
     mvstack.push(model_view);
     model_view *= Translate(stairWayPos[0], stairWayPos[1], 2.5);
     model_view *= Scale(0.1, 2, 4);
@@ -899,17 +1019,28 @@ void newWorldSceneSetup()
 bool trigger1 = false;
 void triggerEvent()
 {
+    if (currentScene == HOME) {
+        if (characterTransform[1][3] <=1+magicDoorPosition[1] && characterTransform[1][3] >= magicDoorPosition[1]
+            &&  characterTransform[0][3] <= magicDoorPosition[0]+0.5 && characterTransform[0][3] >= magicDoorPosition[0]-0.5 &&     (AnimatedTime > magicDoorappearTime) ) {
+            currentScene = CITY;
+            orientation *= RotateY(180);
+        }
+    }
     if (currentScene == CITY) {
         if (characterTransform[0][3] >= stairWayPos[0] && characterTransform[0][3]<= stairWayPos[0]+1
             &&  characterTransform[1][3] >= stairWayPos[1]-1 && characterTransform[1][3] <= stairWayPos[1]+1
             && trigger1 == false) {
             characterTransform *= RotateZ(180)*Translate(0, 0, 35);
+            orientation *= RotateY(180);
             trigger1 = true;
         }
         if (characterTransform[0][3] >= stairWayPos[0]+1 && characterTransform[0][3]<= stairWayPos[0]+3
             &&  characterTransform[1][3] >= stairWayPos[1] && characterTransform[1][3] <= stairWayPos[1]+1
             && trigger1 == true){
             characterTransform *= Translate(0, 0, -35);
+            characterTransform *= RotateZ(180);
+            characterTransform *= Translate(3, 0, 0);
+            orientation *= RotateY(180);
             trigger1 = false;
         }
     }
@@ -960,10 +1091,7 @@ void display(void)
     
     createCharacter();
     //printf("x: %f y: %f\n",characterTransform[0][3], characterTransform[1][3]);
-    if (characterTransform[1][3] <=1+magicDoorPosition[1] && characterTransform[1][3] >= magicDoorPosition[1]
-    &&  characterTransform[0][3] <= magicDoorPosition[0]+0.5 && characterTransform[0][3] >= magicDoorPosition[0]-0.5 && (AnimatedTime > magicDoorApearTime) ) {
-        currentScene = CITY;
-    }
+    
     switch (currentScene) {
         case HOME:
             sceneSetup();
@@ -974,9 +1102,6 @@ void display(void)
             break;
         default:
             break;
-    }
-    if (lastScene == HOME && currentScene == CITY) {
-        orientation *= RotateY(180);
     }
     triggerEvent();
     
@@ -1022,6 +1147,9 @@ void myKey(unsigned char key, int x, int y)
             break ;
         case 'i':
             currentBehavior = FORWARD;
+            break;
+        case 'I':
+            currentBehavior = RUN;
             break;
         case 'k':
             currentBehavior = BACKWARD;

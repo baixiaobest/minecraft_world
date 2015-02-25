@@ -45,6 +45,10 @@
 		A928AA3F1A9C6B0C00BB53C4 /* vehicle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vehicle.h; sourceTree = "<group>"; };
 		A928AA401A9C6F1A00BB53C4 /* texture_vehicle_body.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_vehicle_body.tga; sourceTree = "<group>"; };
 		A928AA411A9C6F1A00BB53C4 /* texture_wheel.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_wheel.tga; sourceTree = "<group>"; };
+		A928AA421A9D08CB00BB53C4 /* texture_wood.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_wood.tga; sourceTree = "<group>"; };
+		A928AA431A9D0D6A00BB53C4 /* texture_trunk_surface.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_trunk_surface.tga; sourceTree = "<group>"; };
+		A928AA441A9D381000BB53C4 /* texture_wooden_door.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_wooden_door.tga; sourceTree = "<group>"; };
+		A928AA451A9D3E4300BB53C4 /* texture_motel_logo.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_motel_logo.tga; sourceTree = "<group>"; };
 		A97BC6301A97D6F50076E1FA /* assignment_2_baixiao */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = assignment_2_baixiao; sourceTree = BUILT_PRODUCTS_DIR; };
 		A97BC63C1A97D7A80076E1FA /* challenge.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = challenge.tga; sourceTree = "<group>"; };
 		A97BC63D1A97D7A80076E1FA /* earth.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = earth.tga; sourceTree = "<group>"; };
@@ -150,6 +154,10 @@
 				A9279F271A9C2D2E003B327A /* texture_balcony.tga */,
 				A928AA3C1A9C624900BB53C4 /* texture_minecraft_studio.tga */,
 				A928AA3D1A9C62A600BB53C4 /* texture_studio.tga */,
+				A928AA421A9D08CB00BB53C4 /* texture_wood.tga */,
+				A928AA431A9D0D6A00BB53C4 /* texture_trunk_surface.tga */,
+				A928AA441A9D381000BB53C4 /* texture_wooden_door.tga */,
+				A928AA451A9D3E4300BB53C4 /* texture_motel_logo.tga */,
 			);
 			name = texture;
 			sourceTree = "<group>";
