@@ -66,7 +66,7 @@ mat4 characterPosition;  //position of character
 mat4 firstPersonRotation;
 bool charPosInit = false; //if character initial position is setup
 
-enum charBehavior{NO_BEHAVIOR, FORWARD, BACKWARD, LEFT, RIGHT, TURN_LEFT, TURN_RIGHT, RUN};
+enum charBehavior{NO_BEHAVIOR, FORWARD, BACKWARD, LEFT, RIGHT, TURN_LEFT, TURN_RIGHT, RUN, WALK};
 enum scene{HOME, CITY, TUNNEL};
 enum viewMode{THIRD_PERSON, FIRST_PERSON};
 
@@ -223,19 +223,22 @@ void myMotionCallBack(int x, int y)
         if (currentViewMode == THIRD_PERSON){
             orientation = RotateY(  10 * (arcball_coords.x - anchor.x) ) * orientation;
 #ifdef LOG_DATA
-        myRecorder.logCam(AnimatedTime+0.01, point2(10 * (arcball_coords.x - anchor.x),0));
+        myRecorder.logCam(AnimatedTime+0.001, point2(10 * (arcball_coords.x - anchor.x),0));
 #endif
         }
         //first person view will rotate the person
         else{
             characterTransform *= RotateZ(-6 * (arcball_coords.x - anchor.x));
+#ifdef LOG_DATA
+            myRecorder.logRotation(AnimatedTime+0.002, point3(0,0,-6 * (arcball_coords.x - anchor.x)));
+#endif
         }
     }
 	
     if( mouseButton == GLUT_RIGHT_BUTTON ){
 		zoom *= 1 + .1 * (arcball_coords.y - anchor.y);
 #ifdef LOG_DATA
-        myRecorder.logZoom(AnimatedTime+0.02, 1 + .1 * (arcball_coords.y - anchor.y));
+        myRecorder.logZoom(AnimatedTime+0.003, 1 + .1 * (arcball_coords.y - anchor.y));
 #endif
     }
     glutPostRedisplay() ;
@@ -717,7 +720,7 @@ void createCharacter()
     //left arm
     mvstack.push(model_view);
     model_view *= Translate(0, bodyWidth_Y/2+armWidth_Y/2, bodyHeight/2); //joint
-    if (behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT)
+    if ((behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT) || currentBehavior==WALK)
         model_view *= RotateY(-10*sin(10*AnimatedTime)); // rotates arm
     model_view *= Translate(0, 0, -armLength/2);
     model_view *= Scale(armWidth_X, armWidth_Y, armLength);
@@ -727,7 +730,7 @@ void createCharacter()
     //right arm
     mvstack.push(model_view);
     model_view *= Translate(0, -(bodyWidth_Y/2+armWidth_Y/2), bodyHeight/2); //joint
-    if (behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT)
+    if ((behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT) || currentBehavior==WALK)
         model_view *= RotateY(10*sin(10*AnimatedTime));   //rotates arm
     model_view *= Translate(0, 0, -armLength/2);
     model_view *= Scale(armWidth_X, armWidth_Y, armLength);
@@ -738,7 +741,7 @@ void createCharacter()
     //left leg
     mvstack.push(model_view);
     model_view *= Translate(0, bodyWidth_Y/2-legWidth_Y/2, -bodyHeight/2); // joint
-    if (behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT)
+    if ((behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT) || currentBehavior==WALK)
         model_view *= RotateY(10*sin(10*AnimatedTime));
     model_view *= Translate(0, 0, -legLength/2);
     setTextureImage2(texture_customized_cube, mobLegImage);
@@ -748,7 +751,7 @@ void createCharacter()
     //right leg
     mvstack.push(model_view);
     model_view *= Translate(0, -(bodyWidth_Y/2-legWidth_Y/2), -bodyHeight/2); // joint
-    if(behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT)
+    if((behaviorCount != 0 && lastBehavior != TURN_LEFT && lastBehavior != TURN_RIGHT) || currentBehavior==WALK)
         model_view *= RotateY(-10*sin(10*AnimatedTime));
     model_view *= Translate(0, 0, -legLength/2);
     setTextureImage2(texture_customized_cube, mobLegImage);
@@ -791,13 +794,24 @@ void behave(int behavior)
         case TURN_LEFT:
             characterTransform *= RotateZ(3); orientation *= RotateY(3);
             lastBehavior = TURN_LEFT;
+#ifdef LOG_DATA
+            myRecorder.logRotation(AnimatedTime, point3(0,0,3));
+#endif
             break;
         case TURN_RIGHT:
             characterTransform *= RotateZ(-3); orientation *= RotateY(-3);
             lastBehavior = TURN_RIGHT;
+#ifdef LOG_DATA
+            myRecorder.logRotation(AnimatedTime, point3(0,0,-3));
+#endif
             break;
         default: ;
     }
+#ifdef LOG_DATA
+    if (behavior != TURN_LEFT && behavior != TURN_RIGHT){
+        myRecorder.logTranslation(AnimatedTime, point3(characterTransform[0][3],characterTransform[1][3],characterTransform[2][3]));
+    }
+#endif
 }
 
 /*********************************************************
@@ -1100,6 +1114,7 @@ void tunnelSceneSetup()
 /*********************************************************
  triggerEvent() function
  *********************************************************/
+void myKey(unsigned char key, int x, int y);
 bool trigger1 = false;
 void triggerEvent()
 {
@@ -1109,6 +1124,7 @@ void triggerEvent()
             &&  characterTransform[0][3] <= magicDoorPosition[0]+0.5 && characterTransform[0][3] >= magicDoorPosition[0]-0.5 &&     (AnimatedTime > magicDoorappearTime) && enableMagicDoor ) {
             currentScene = CITY;
             enableMagicDoor = false;
+            orientation = mat4();
             if (currentViewMode == THIRD_PERSON)
                 orientation *= RotateY(180);
         }
@@ -1155,7 +1171,6 @@ void triggerEvent()
 /*********************************************************
 playRecorder() function
  *********************************************************/
-void myKey(unsigned char key, int x, int y);
 void playRecorder()
 {
     while(myRecorder.getsize()>0 && myRecorder.getTime() <= AnimatedTime)
@@ -1167,13 +1182,19 @@ void playRecorder()
         if (myRecorder.getZoom()!=0){
             zoom *= myRecorder.getZoom();
         }
-        /*if (myRecorder.getTranslation().x!=0 || myRecorder.getTranslation().y!=0 || myRecorder.getTranslation().z!=0) {
+        if (myRecorder.getTranslation().x!=0 || myRecorder.getTranslation().y!=0 || myRecorder.getTranslation().z!=0) {
             characterTransform *= Translate(myRecorder.getTranslation().x, myRecorder.getTranslation().y, myRecorder.getTranslation().z);
             //let character have action
-            currentBehavior = FORWARD;
-        }else{
-            currentBehavior = NO_BEHAVIOR;
-        }*/
+            currentBehavior = WALK;
+            characterTransform[0][3] = myRecorder.getTranslation().x;
+            characterTransform[1][3] = myRecorder.getTranslation().y;
+            characterTransform[2][3] = myRecorder.getTranslation().z;
+        }
+        if (myRecorder.getRotation().x != 0 || myRecorder.getRotation().y != 0 || myRecorder.getRotation().z != 0) {
+            characterTransform *= RotateZ(myRecorder.getRotation().z);
+            if (currentViewMode == THIRD_PERSON)
+                orientation *= RotateY(myRecorder.getRotation().z);
+        }
         if (myRecorder.getInstruction()!="0"){
             myKey(myRecorder.getInstruction()[0], 0, 0);
         }
@@ -1331,15 +1352,9 @@ void myKey(unsigned char key, int x, int y)
     }
 #ifdef LOG_DATA
     switch (key){
-        case 'i':
-        case 'I':
-        case 'k':
-        case 'j':
-        case 'l':
-        case 'u':
-        case 'o':
         case 'v':
         case 'a':
+        case 'r':
             str = std::string(1,key);
             myRecorder.logInstruction(AnimatedTime, str);
         break;
