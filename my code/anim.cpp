@@ -3,6 +3,7 @@
 #include "../CS174a template/Shapes.h"
 #include "terrainMap.h"
 #include "vehicle.h"
+#include "recorder.h"
 
 std::stack<mat4> mvstack;
 
@@ -26,6 +27,7 @@ GLint   uModelView, uProjection, uView,
 		uAmbient, uDiffuse, uSpecular, uLightPos, uShininess,
 		uTex, uEnableTex;
 
+Recorder myRecorder;
 
 TgaImage grassImage("texture_grass.tga");
 TgaImage rockImage("texture_rock.tga");
@@ -76,8 +78,11 @@ int lastBehavior = NO_BEHAVIOR;
 int frameCount = 0;
 double lastTime = 0;
 
+#define LOG_DATA
+
 void init()
 {
+    
 #ifdef EMSCRIPTEN
     GLuint program = LoadShaders( "vshader.glsl", "fshader.glsl" );								// Load shaders and use the resulting shader program
     TgaImage coolImage ("challenge.tga");
@@ -207,9 +212,20 @@ void myMotionCallBack(int x, int y)
     {
         
         orientation = RotateZ( 10 * (arcball_coords.y - anchor.y) ) * orientation;
-        if (currentViewMode == THIRD_PERSON)
+#ifdef LOG_DATA
+        myRecorder.logCam(AnimatedTime, point2(0,10 * (arcball_coords.y - anchor.y)));
+#endif
+        if (currentViewMode == THIRD_PERSON){
             orientation = RotateY(  10 * (arcball_coords.x - anchor.x) ) * orientation;
+#ifdef LOG_DATA
+        myRecorder.logCam(AnimatedTime+0.01, point2(10 * (arcball_coords.x - anchor.x),0));
+#endif
+        }
+        //first person view cannot change Y
         else{
+#ifdef LOG_DATA
+            myRecorder.logCam(AnimatedTime+0.01, point2(-6 * (arcball_coords.x - anchor.x),0));
+#endif
             characterTransform *= RotateZ(-6 * (arcball_coords.x - anchor.x));
         }
     }
@@ -609,7 +625,8 @@ void mapObject(int layer[][OBJECT_WIDTH], int height)
  sceneSetup() function
  *********************************************************/
 double magicDoorPosition[2] = {2,17.5};
-int magicDoorappearTime = 3;
+int magicDoorappearTime = 8;
+bool enableMagicDoor = true;
 void sceneSetup()
 {
     
@@ -642,7 +659,7 @@ void sceneSetup()
     model_view = mvstack.top(); mvstack.pop();
     model_view = mvstack.top(); mvstack.pop();
     
-    if (AnimatedTime > magicDoorappearTime){
+    if (AnimatedTime > magicDoorappearTime && enableMagicDoor){
         mvstack.push(model_view);
         model_view *= Translate(magicDoorPosition[0], magicDoorPosition[1], 1.5);
         model_view *= RotateZ(-90);
@@ -766,11 +783,11 @@ void behave(int behavior)
             lastBehavior = RIGHT;
             break;
         case TURN_LEFT:
-            characterTransform *= RotateZ(3);
+            characterTransform *= RotateZ(3); orientation *= RotateY(3);
             lastBehavior = TURN_LEFT;
             break;
         case TURN_RIGHT:
-            characterTransform *= RotateZ(-4);
+            characterTransform *= RotateZ(-3); orientation *= RotateY(-3);
             lastBehavior = TURN_RIGHT;
             break;
         default: ;
@@ -974,7 +991,7 @@ void newWorldSceneSetup()
     model_view = mvstack.top(); mvstack.pop();
     
     //draw skyscraper
-    mvstack.push(model_view);
+    /*mvstack.push(model_view);
     model_view *= Translate(0, 0, 1);
     model_view *= Translate(buildingPos[0], buildingPos[1], 0);
     mat4 tmp = model_view;
@@ -1017,7 +1034,7 @@ void newWorldSceneSetup()
         model_view *= Translate(0, 0, 1);
         mapTerrain(building_L6);
     }
-    model_view = mvstack.top(); mvstack.pop();
+    model_view = mvstack.top(); mvstack.pop();*/
     
     
     //draw stairway
@@ -1078,10 +1095,10 @@ void tunnelSceneSetup()
  triggerEvent() function
  *********************************************************/
 bool trigger1 = false;
-bool enableMagicDoor = true;
 void triggerEvent()
 {
     if (currentScene == HOME) {
+        //magic door
         if (characterTransform[1][3] <=1+magicDoorPosition[1] && characterTransform[1][3] >= magicDoorPosition[1]
             &&  characterTransform[0][3] <= magicDoorPosition[0]+0.5 && characterTransform[0][3] >= magicDoorPosition[0]-0.5 &&     (AnimatedTime > magicDoorappearTime) && enableMagicDoor ) {
             currentScene = CITY;
@@ -1091,6 +1108,7 @@ void triggerEvent()
         }
     }
     else if (currentScene == CITY) {
+        //skyscraper stairway
         if (characterTransform[0][3] >= stairWayPos[0] && characterTransform[0][3]<= stairWayPos[0]+1
             &&  characterTransform[1][3] >= stairWayPos[1]-1 && characterTransform[1][3] <= stairWayPos[1]+1
             && trigger1 == false) {
@@ -1099,6 +1117,7 @@ void triggerEvent()
                 orientation *= RotateY(180);
             trigger1 = true;
         }
+        //skyscraper stairway
         if (characterTransform[0][3] >= stairWayPos[0]+1 && characterTransform[0][3]<= stairWayPos[0]+3
             &&  characterTransform[1][3] >= stairWayPos[1] && characterTransform[1][3] <= stairWayPos[1]+1
             && trigger1 == true){
@@ -1109,6 +1128,7 @@ void triggerEvent()
                 orientation *= RotateY(180);
             trigger1 = false;
         }
+        //tunnel trigger
         if (characterTransform[0][3] >= motelPos[0]+3.5 && characterTransform[0][3] <= motelPos[1]+4.5
          && characterTransform[1][3] >= motelPos[1]+1.5 && characterTransform[1][3] <= motelPos[1]+3.5) {
             currentScene = TUNNEL;
@@ -1118,11 +1138,20 @@ void triggerEvent()
         }
     }
     else if (currentScene == TUNNEL){
+        //disappear tunnel trigger
         if (characterTransform[0][3] >= 0 && characterTransform[0][3] <= 20
             && characterTransform[1][3] >= 0 && characterTransform[1][3] <= 20){
             currentScene = HOME;
         }
     }
+}
+
+/*********************************************************
+playRecorder() function
+ *********************************************************/
+void playRecorder()
+{
+    
 }
 
 /*********************************************************
@@ -1136,13 +1165,17 @@ void display(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	set_color( 1, 1, 1 );
 	
+#ifdef PLAY_RECORDER
+    playRecorder();
+#endif
+    
     if (currentViewMode == THIRD_PERSON) {
         model_view = LookAt( eye, ref, up );
     }else{
         model_view = LookAt(vec4(-0.5,0,0,1), vec4(-2,0,0,1), up);
     }
     
-    //if (currentViewMode == THIRD_PERSON)
+    if (currentViewMode == THIRD_PERSON)
         model_view *= orientation;
     model_view *= Scale(zoom);
     
@@ -1150,7 +1183,7 @@ void display(void)
     float timeToRotate = 5;
     float rotationSceneTime = AnimatedTime - rotationBeginTime;
     if (rotationSceneTime > 0 && rotationSceneTime < timeToRotate) {
-        //eye = RotateY(360/timeToRotate*rotationSceneTime)*unrotatedPoint;
+        eye = RotateY(360/timeToRotate*rotationSceneTime)*unrotatedPoint;
     }
     if (0<TIME && TIME < rotationBeginTime) {
         unrotatedPoint = eye;
@@ -1214,6 +1247,7 @@ void myKey(unsigned char key, int x, int y)
 {
     switch (key) {
         case 'q':   case 27:				// 27 = esc key
+            myRecorder.saveFile("motionData.csv");
             exit(0); 
 		case 'b':
 			std::cout << "Basis: " << ++basis_to_display << '\n';

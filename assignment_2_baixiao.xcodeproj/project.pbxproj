@@ -42,7 +42,6 @@
 		A928AA3B1A9C52B200BB53C4 /* texture_studio.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_studio.tga; sourceTree = "<group>"; };
 		A928AA3C1A9C624900BB53C4 /* texture_minecraft_studio.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_minecraft_studio.tga; sourceTree = "<group>"; };
 		A928AA3D1A9C62A600BB53C4 /* texture_studio.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_studio.tga; sourceTree = "<group>"; };
-		A928AA3F1A9C6B0C00BB53C4 /* vehicle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vehicle.h; sourceTree = "<group>"; };
 		A928AA401A9C6F1A00BB53C4 /* texture_vehicle_body.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_vehicle_body.tga; sourceTree = "<group>"; };
 		A928AA411A9C6F1A00BB53C4 /* texture_wheel.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_wheel.tga; sourceTree = "<group>"; };
 		A928AA421A9D08CB00BB53C4 /* texture_wood.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_wood.tga; sourceTree = "<group>"; };
@@ -64,6 +63,7 @@
 		A97BC64A1A97DDD60076E1FA /* newYear.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = newYear.tga; sourceTree = "<group>"; };
 		A97BC64D1A97EB540076E1FA /* anim.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = anim.cpp; sourceTree = "<group>"; };
 		A97BC6501A99684A0076E1FA /* texture.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture.tga; sourceTree = "<group>"; };
+		A992EB681AA27DA400F9BE81 /* recorder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = recorder.h; sourceTree = "<group>"; };
 		A9C70F901A9A571200171F50 /* texture_grass.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_grass.tga; sourceTree = "<group>"; };
 		A9C70F921A9A593600171F50 /* terrainMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = terrainMap.h; sourceTree = "<group>"; };
 		A9C70F931A9A6F8F00171F50 /* texture_rock.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = texture_rock.tga; sourceTree = "<group>"; };
@@ -110,7 +110,7 @@
 				A97BC6401A97D7A80076E1FA /* vshader.glsl */,
 				A97BC64D1A97EB540076E1FA /* anim.cpp */,
 				A9C70F921A9A593600171F50 /* terrainMap.h */,
-				A928AA3F1A9C6B0C00BB53C4 /* vehicle.h */,
+				A992EB681AA27DA400F9BE81 /* recorder.h */,
 				A9C70F911A9A571D00171F50 /* texture */,
 			);
 			path = "my code";
