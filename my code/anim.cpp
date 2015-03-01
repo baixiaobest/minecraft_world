@@ -4,6 +4,7 @@
 #include "terrainMap.h"
 #include "vehicle.h"
 #include "recorder.h"
+#include <string>
 
 std::stack<mat4> mvstack;
 
@@ -78,10 +79,14 @@ int lastBehavior = NO_BEHAVIOR;
 int frameCount = 0;
 double lastTime = 0;
 
-#define LOG_DATA
+#define PLAY_RECORDER
+//#define LOG_DATA
 
 void init()
 {
+#ifdef PLAY_RECORDER
+    myRecorder.loadFile("motionData.csv");
+#endif
     
 #ifdef EMSCRIPTEN
     GLuint program = LoadShaders( "vshader.glsl", "fshader.glsl" );								// Load shaders and use the resulting shader program
@@ -221,17 +226,18 @@ void myMotionCallBack(int x, int y)
         myRecorder.logCam(AnimatedTime+0.01, point2(10 * (arcball_coords.x - anchor.x),0));
 #endif
         }
-        //first person view cannot change Y
+        //first person view will rotate the person
         else{
-#ifdef LOG_DATA
-            myRecorder.logCam(AnimatedTime+0.01, point2(-6 * (arcball_coords.x - anchor.x),0));
-#endif
             characterTransform *= RotateZ(-6 * (arcball_coords.x - anchor.x));
         }
     }
 	
-	if( mouseButton == GLUT_RIGHT_BUTTON )
+    if( mouseButton == GLUT_RIGHT_BUTTON ){
 		zoom *= 1 + .1 * (arcball_coords.y - anchor.y);
+#ifdef LOG_DATA
+        myRecorder.logZoom(AnimatedTime+0.02, 1 + .1 * (arcball_coords.y - anchor.y));
+#endif
+    }
     glutPostRedisplay() ;
 }
 
@@ -1149,9 +1155,32 @@ void triggerEvent()
 /*********************************************************
 playRecorder() function
  *********************************************************/
+void myKey(unsigned char key, int x, int y);
 void playRecorder()
 {
-    
+    while(myRecorder.getsize()>0 && myRecorder.getTime() <= AnimatedTime)
+    {
+        if (myRecorder.getCam().x !=0 || myRecorder.getCam().y != 0){
+            orientation *= RotateY(myRecorder.getCam().x);
+            orientation *= RotateZ(myRecorder.getCam().y);
+        }
+        if (myRecorder.getZoom()!=0){
+            zoom *= myRecorder.getZoom();
+        }
+        /*if (myRecorder.getTranslation().x!=0 || myRecorder.getTranslation().y!=0 || myRecorder.getTranslation().z!=0) {
+            characterTransform *= Translate(myRecorder.getTranslation().x, myRecorder.getTranslation().y, myRecorder.getTranslation().z);
+            //let character have action
+            currentBehavior = FORWARD;
+        }else{
+            currentBehavior = NO_BEHAVIOR;
+        }*/
+        if (myRecorder.getInstruction()!="0"){
+            myKey(myRecorder.getInstruction()[0], 0, 0);
+        }
+        if (myRecorder.pop() == false) {
+            break;
+        }
+    }
 }
 
 /*********************************************************
@@ -1164,7 +1193,7 @@ void display(void)
     glClearColor( .1, .1, .2, 1 );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	set_color( 1, 1, 1 );
-	
+    
 #ifdef PLAY_RECORDER
     playRecorder();
 #endif
@@ -1174,13 +1203,13 @@ void display(void)
     }else{
         model_view = LookAt(vec4(-0.5,0,0,1), vec4(-2,0,0,1), up);
     }
+
     
-    if (currentViewMode == THIRD_PERSON)
-        model_view *= orientation;
+    model_view *= orientation;
     model_view *= Scale(zoom);
     
     float rotationBeginTime = 0;
-    float timeToRotate = 5;
+    float timeToRotate = 2;
     float rotationSceneTime = AnimatedTime - rotationBeginTime;
     if (rotationSceneTime > 0 && rotationSceneTime < timeToRotate) {
         eye = RotateY(360/timeToRotate*rotationSceneTime)*unrotatedPoint;
@@ -1245,9 +1274,12 @@ void instructions() {	 std::cout <<	"Press:"									<< '\n' <<
 
 void myKey(unsigned char key, int x, int y)
 {
+    std::string str = std::string(1,key);
     switch (key) {
         case 'q':   case 27:				// 27 = esc key
+#ifdef LOG_DATA
             myRecorder.saveFile("motionData.csv");
+#endif
             exit(0); 
 		case 'b':
 			std::cout << "Basis: " << ++basis_to_display << '\n';
@@ -1255,7 +1287,7 @@ void myKey(unsigned char key, int x, int y)
 		case 'B':
 			std::cout << "Basis: " << --basis_to_display << '\n';
 			break;
-        case 'a':							// toggle animation           		
+        case 'a':// toggle animation
             if(animate) std::cout << "Elapsed time " << TIME << '\n';
             animate = 1 - animate ;
             animationJustStarted = true;
@@ -1297,10 +1329,28 @@ void myKey(unsigned char key, int x, int y)
         default:
             currentBehavior = NO_BEHAVIOR;
     }
+#ifdef LOG_DATA
+    switch (key){
+        case 'i':
+        case 'I':
+        case 'k':
+        case 'j':
+        case 'l':
+        case 'u':
+        case 'o':
+        case 'v':
+        case 'a':
+            str = std::string(1,key);
+            myRecorder.logInstruction(AnimatedTime, str);
+        break;
+        default:break;
+    }
+#endif
+    
     glutPostRedisplay() ;
 }
 
-int main() 
+int main()
 {
 	char title[] = "Title";
 	int argcount = 1;	 char* title_ptr = title;
