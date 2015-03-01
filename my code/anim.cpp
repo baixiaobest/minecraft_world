@@ -644,7 +644,7 @@ void mapObject(int layer[][OBJECT_WIDTH], int height)
  sceneSetup() function
  *********************************************************/
 double magicDoorPosition[2] = {2,17.5};
-int magicDoorappearTime = 10;
+int magicDoorappearTime = 15;
 bool enableMagicDoor = true;
 void sceneSetup()
 {
@@ -1248,7 +1248,7 @@ void display(void)
     model_view *= orientation;
     model_view *= Scale(zoom);
     
-    float rotationBeginTime = 2;
+    float rotationBeginTime = 1;
     float timeToRotate = 5;
     float rotationSceneTime = AnimatedTime - rotationBeginTime;
     if (rotationSceneTime > 0 && rotationSceneTime < timeToRotate) {
