@@ -79,6 +79,10 @@ int lastBehavior = NO_BEHAVIOR;
 int frameCount = 0;
 double lastTime = 0;
 
+bool enableDrawMotel = true;
+bool enableDrawStudio = true;
+bool enableDrawSkyscraper = true;
+
 #define PLAY_RECORDER
 //#define LOG_DATA
 
@@ -300,12 +304,14 @@ void drawCube()		// draw a cube with dimensions 1,1,1 centered around the origin
 
 void drawPlainCube()		// draw a cube with dimensions 1,1,1 centered around the origin.
 {
-    //glBindTexture( GL_TEXTURE_2D, texture_cube );
+    set_color(3, 3, 3);
+    glBindTexture( GL_TEXTURE_2D, NULL );
     glUniform1i( uEnableTex, 1 );
     glUniformMatrix4fv( uModelView, 1, GL_FALSE, transpose(model_view) );
     glBindVertexArray( cubeData.vao );
     glDrawArrays( GL_TRIANGLES, 0, cubeData.numVertices );
     glUniform1i( uEnableTex, 0 );
+    set_color(1, 1, 1);
 }
 
 void drawCustomizedCube()
@@ -443,7 +449,7 @@ void setTextureImage2(GLuint &texture, TgaImage& newImg)
  generateTerrain()
  DOES: draw the given terrain
  *********************************************************/
-void generateTerrain(bool customized, int width, int height, bool hollow = false, int mappingMethod=X_Y)
+void generateTerrain(bool customized, int width, int height, bool hollow = false, int mappingMethod=X_Y, bool plain=false)
 {
     mvstack.push(model_view);
     for (int i=0; i<width; i++) {
@@ -452,15 +458,19 @@ void generateTerrain(bool customized, int width, int height, bool hollow = false
             if (!hollow || i==0 || i==width-1){
                 if (customized) {
                     drawCustomizedCube();
-                }else{
+                }else if(plain==false){
                     drawCube();
+                }else{
+                    drawPlainCube();
                 }
             } else{
                 if (k==0 || k==height-1) {
                     if (customized) {
                         drawCustomizedCube();
-                    }else{
+                    }else if (plain==false){
                         drawCube();
+                    }else{
+                        drawPlainCube();
                     }
                 }
             }
@@ -634,7 +644,7 @@ void mapObject(int layer[][OBJECT_WIDTH], int height)
  sceneSetup() function
  *********************************************************/
 double magicDoorPosition[2] = {2,17.5};
-int magicDoorappearTime = 8;
+int magicDoorappearTime = 10;
 bool enableMagicDoor = true;
 void sceneSetup()
 {
@@ -792,14 +802,18 @@ void behave(int behavior)
             lastBehavior = RIGHT;
             break;
         case TURN_LEFT:
-            characterTransform *= RotateZ(3); orientation *= RotateY(3);
+            characterTransform *= RotateZ(3);
+            if (currentViewMode == THIRD_PERSON)
+                orientation *= RotateY(3);
             lastBehavior = TURN_LEFT;
 #ifdef LOG_DATA
             myRecorder.logRotation(AnimatedTime, point3(0,0,3));
 #endif
             break;
         case TURN_RIGHT:
-            characterTransform *= RotateZ(-3); orientation *= RotateY(-3);
+            characterTransform *= RotateZ(-3);
+            if (currentViewMode == THIRD_PERSON)
+                orientation *= RotateY(-3);
             lastBehavior = TURN_RIGHT;
 #ifdef LOG_DATA
             myRecorder.logRotation(AnimatedTime, point3(0,0,-3));
@@ -924,8 +938,8 @@ void drawMotel()
 void newWorldSceneSetup()
 {
     //draw pavement
-    setTextureImage2(texture_cube, pavementImage);
-    generateTerrain(false, cityLength, pavementWidth);
+    //setTextureImage2(texture_cube, pavementImage);
+    generateTerrain(false, cityLength, pavementWidth, false, X_Y, true);
     //draw road
     mvstack.push(model_view);
     model_view *= Translate(0, pavementWidth, 0);
@@ -956,11 +970,12 @@ void newWorldSceneSetup()
     }
     model_view = mvstack.top(); mvstack.pop();
     model_view *= Translate(0, 5, 0);
-    setTextureImage2(texture_cube, pavementImage);
-    generateTerrain(false, cityLength, pavement2Width);
+    //setTextureImage2(texture_cube, pavementImage);
+    generateTerrain(false, cityLength, pavement2Width, false, X_Y, true);
     model_view = mvstack.top(); mvstack.pop();
     
     //draw Studio
+    if (enableDrawStudio){
     mvstack.push(model_view);
     model_view *= Translate(0, 4, 1);
     setTextureImage2(texture_cube, studioImage);
@@ -985,6 +1000,7 @@ void newWorldSceneSetup()
     setTextureImage2(texture_customized_cube, studioLogoImage);
     drawCustomizedCube();
     model_view = mvstack.top(); mvstack.pop();
+    }
     
     //draw magic door
     mvstack.push(model_view);
@@ -1007,11 +1023,13 @@ void newWorldSceneSetup()
     //draw motel
     mvstack.push(model_view);
     model_view *= Translate(motelPos[0], motelPos[1], 1);
-    drawMotel();
+    if (enableDrawMotel)
+        drawMotel();
     model_view = mvstack.top(); mvstack.pop();
     
     //draw skyscraper
-    /*mvstack.push(model_view);
+    if (enableDrawSkyscraper){
+    mvstack.push(model_view);
     model_view *= Translate(0, 0, 1);
     model_view *= Translate(buildingPos[0], buildingPos[1], 0);
     mat4 tmp = model_view;
@@ -1054,7 +1072,8 @@ void newWorldSceneSetup()
         model_view *= Translate(0, 0, 1);
         mapTerrain(building_L6);
     }
-    model_view = mvstack.top(); mvstack.pop();*/
+    model_view = mvstack.top(); mvstack.pop();
+    }
     
     
     //draw stairway
@@ -1229,8 +1248,8 @@ void display(void)
     model_view *= orientation;
     model_view *= Scale(zoom);
     
-    float rotationBeginTime = 0;
-    float timeToRotate = 2;
+    float rotationBeginTime = 2;
+    float timeToRotate = 5;
     float rotationSceneTime = AnimatedTime - rotationBeginTime;
     if (rotationSceneTime > 0 && rotationSceneTime < timeToRotate) {
         eye = RotateY(360/timeToRotate*rotationSceneTime)*unrotatedPoint;
@@ -1291,6 +1310,8 @@ void instructions() {	 std::cout <<	"Press:"									<< '\n' <<
 										"  a to toggle the animation."				<< '\n' <<
 										"  b to show the next basis's axes."		<< '\n' <<
 										"  B to show the previous basis's axes."	<< '\n' <<
+                                        "  i j k l u o to control your character!"	<< '\n' <<
+                                        "  v to toggle first person and third person view!"	<< '\n' <<
 										"  q to quit."								<< '\n';	}
 
 void myKey(unsigned char key, int x, int y)
@@ -1347,6 +1368,9 @@ void myKey(unsigned char key, int x, int y)
                 currentViewMode = THIRD_PERSON;
             }
             break;
+        case '1': enableDrawMotel = !enableDrawMotel; break;
+        case '2': enableDrawStudio = !enableDrawStudio; break;
+        case '3': enableDrawSkyscraper = !enableDrawSkyscraper;break;
         default:
             currentBehavior = NO_BEHAVIOR;
     }

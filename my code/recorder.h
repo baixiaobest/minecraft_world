@@ -26,6 +26,8 @@ private:
     
     int m_pointer;
     int m_size;
+    //std::string m_fileName;
+    //void checkSize();
 public:
     Recorder(){m_pointer = 0; m_size = 0;}
     bool loadFile(std::string);
@@ -37,6 +39,7 @@ public:
     void logRotation(float time, point3);
     void logInstruction(float time, std::string);
     void logZoom(float time, float);
+    //void setFilename(std::string filename){m_fileName = filename;};
     
     //getter
     float getTime(){return m_time[m_pointer];};
@@ -68,8 +71,6 @@ bool Recorder::loadFile(std::string fileName)
         m_instruction.push_back(data[9]);
         m_zoom.push_back(stof(data[10]));
         
-        //printf("%f %f %f %f %f %f %f %f %f %s\n",m_time.back(), m_camera.back().x, m_camera.back().y, m_translation.back().x, m_translation.back().y, m_translation.back().z, m_rotation.back().x, m_rotation.back().y, m_rotation.back().z, m_instruction.back().c_str());
-        
         m_size++;
     }
     return true;
@@ -77,7 +78,7 @@ bool Recorder::loadFile(std::string fileName)
 
 bool Recorder::saveFile(std::string outputFile)
 {
-    std::ofstream outputStream(outputFile);
+    std::ofstream outputStream(outputFile,std::ios::out | std::ios::app);
     for (int i=0; i<m_size; i++) {
         std::string line_time = std::to_string(m_time[i])+",";
         std::string line_cam = std::to_string(m_camera[i].x)+","+std::to_string(m_camera[i].y)+",";
@@ -156,5 +157,19 @@ void Recorder::logZoom(float time, float zoom)
     m_instruction.push_back("0");
     m_size++;
 }
+
+/*void Recorder::checkSize()
+{
+    if (m_size == 1000) {
+        saveFile(m_fileName);
+        m_time.clear();
+        m_camera.clear();
+        m_translation.clear();
+        m_rotation.clear();
+        m_instruction.clear();
+        m_zoom.clear();
+        m_size = 0;
+    }
+}*/
 
 #endif
